@@ -6,12 +6,11 @@ public class Main {
     static String userpw;
     static boolean is_admin;
 
-
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
     public static final String USER_NAME ="DBTeam7";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
-    public static PreparedStatement pstmt = null;
+
     public static void main(String[] args) {
         int command;
         Scanner scanner = new Scanner(System.in);
@@ -31,7 +30,8 @@ public class Main {
                     command = scanner.nextInt();
                     switch (command){
                         case 1:
-                            LoginPage();
+                            is_admin=true;
+                            MainPage();
                             //로그인 페이지
                             break;
                         case 2:
@@ -53,9 +53,27 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while(true){
             if(is_admin){
-                System.out.println("1)신고 목록 확인 2)회원 목록 확인");
+                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)뒤로 가기 5)프로그램 종료");
                 command = scanner.nextInt();
                 switch (command){
+                    case 1:
+                        AdminMainPage.showReportList();
+                        break;
+                    case 2:
+                        AdminMainPage.showUserList();
+                        break;
+                    case 3:
+                        int is_success = AdminMainPage.addAdmin();
+                        if(is_success == 0){
+                            System.out.println("관리자 추가 성공!");
+                        }else{
+                            System.out.println("관리자 추가 실패!");
+                        }
+                        break;
+                    case 4:
+                        return 0;
+                    case 5:
+                        System.exit(0);
 
                 }
             }else{
