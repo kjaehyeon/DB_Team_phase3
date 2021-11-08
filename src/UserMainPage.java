@@ -1,6 +1,8 @@
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 public class UserMainPage {
 
@@ -46,6 +48,39 @@ public class UserMainPage {
     }
 
     public static void updateUserInfo(){
+        String upw = null;
+        String sql = null;
+        String pw = null;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("회원정보를 수정하시려면 PW를 다시 입력해주세요");
+        int count = 3;
+        while(true) {
+            System.out.print("PW : ");
+            upw = sc.nextLine();
+            try {
+                sql = "SELECT Pw FROM MEMBER WHERE U_id = ?";
+                pstmt = Main.conn.prepareStatement(sql);
+                pstmt.setString(1, Main.userid);
+                ResultSet rs = pstmt.executeQuery();
+                while(rs.next()){
+                    pw = rs.getString(1);
+                }
+                if (upw.equals(pw)){
+                    break;
+                } else{
+                    System.out.println("비밀번호가 틀렸습니다");
+                    if (count == 0){
+                        return 0;
+                    }
+                    System.out.println("다시 입력해주세요. " + count + "회 남았습니다.");
+                    count--;
+                    continue;
+                }
+            } catch (SQLException ex){
+                System.err.println("sql error = " + ex.getMessage());
+                System.exit(1);
+            }
+        }
 
     }
 
