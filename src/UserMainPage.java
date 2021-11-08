@@ -1,10 +1,36 @@
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Scanner;
 
 public class UserMainPage {
 
     public static PreparedStatement pstmt;
+
+    public static void selectMenu(){
+        Scanner scan = new Scanner(System.in);
+        while(true){
+            System.out.println("1)상품목록 보기 2)상품검색 3)회원정보 수정 4)상품 등록하기 5)입찰한 상품 목록");
+            int menu = scan.nextInt();
+            switch(menu){
+                case 1:
+                    listItems();
+                    break;
+                case 2:
+                    searchItems();
+                    break;
+                case 3:
+                    updateUserInfo();
+                    break;
+                case 4:
+                    registerItem();
+                    break;
+                case 5:
+                    listBidItems();
+                    break;
+            }
+        }
+    }
 
     public static void listItems(){
         int ad_id[] = {1, 2, 3};
@@ -19,7 +45,7 @@ public class UserMainPage {
         sql = sql.replaceFirst(".$", ")");
 
         try {
-            pstmt = Main.conn.prepareStatement(sql);
+            pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = pstmt.executeQuery();
 
             System.out.println(String.format("%-5s%-10s%-20s%s",
@@ -35,6 +61,10 @@ public class UserMainPage {
                                     rs.getInt(1),
                                     rs.getString(3),
                                     rs.getString(2)));
+            }
+
+            while(true){
+
             }
         } catch(Exception e){
             e.printStackTrace();
