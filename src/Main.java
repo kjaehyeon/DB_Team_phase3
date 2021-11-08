@@ -30,7 +30,6 @@ public class Main {
         }
 
         while(true){
-<<<<<<< HEAD
             System.out.println("1)로그인 2)회원가입 3)관리자 로그인 4)프로그램 종료");
             command = scanner.nextInt();
             switch (command){
