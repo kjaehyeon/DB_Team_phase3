@@ -26,6 +26,7 @@ public class Main {
     }
     static int LoginPage(){
         // id, pw받아서 DB에서 확인하고 MainPage로 넘어간다.
+
         MainPage();
         return 0;
     }
