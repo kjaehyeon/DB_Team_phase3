@@ -73,7 +73,42 @@ public class UserMainPage {
     }
 
     public static void searchItems(){
+        Scanner sc = new Scanner(System.in);
+        int count = 1;
+        String search = null;
+        System.out.println("해당 지역 내에 등록된 물품 중에서 검색합니다.");
+        System.out.print("검색할 키워드를 입력하세요 : ");
+        search = sc.nextLine();
+        String sql = "SELECT it_id, u_id, name"
+                + " FROM ITEM"
+                + " WHERE LOWER(name) LIKE " + String.format("'%%%s%%'", search)
+                + " AND ad_id IN (";
+        for (int location : Main.locations){
+            sql += location + ",";
+        }
+        sql = sql.replaceFirst(".$", ")");
+        try {
+            pstmt = Main.conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+            System.out.println(String.format("%-5s%-10s%-20s%s",
+                    "idx",
+                    "item_id",
+                    "seller_id",
+                    "item_name"));
+            System.out.println("--------------------------------------------------------");
 
+            while(rs.next()){
+                System.out.println(String.format("%-5d%-10d%-20s%s",
+                        count++,
+                        rs.getInt(1),
+                        rs.getString(3),
+                        rs.getString(2)));
+            }
+        } catch (SQLException ex){
+            System.err.println("sql error = " + ex.getMessage());
+            System.exit(1);
+        }
+        return;
     }
 
     public static void updateUserInfo(){
@@ -109,6 +144,49 @@ public class UserMainPage {
                 System.err.println("sql error = " + ex.getMessage());
                 System.exit(1);
             }
+        }
+        //여기서 회원정보 수정
+        // 비밀번호 변경
+        while (true){
+            System.out.print("변경할 PW : ");
+            upw = sc.nextLine();
+            System.out.println("PW 확인 : ");
+            pw = sc.nextLine();
+            if (upw.equals(pw)){
+                break;
+            } else {
+                System.out.println("다시 입려해주세요");
+            }
+        }
+        // 이름 변경
+        System.out.print("변경할 이름 : ");
+        String name = sc.nextLine();
+        // 한 줄 소개 변경
+        System.out.println("변경할 소개글 : ");
+        String description = sc.nextLine();
+        // 전화번호 변경
+        System.out.println("변경할 휴대폰 번호 : ");
+        String tel = sc.nextLine();
+        // email 변경
+        System.out.println("변경할 email : ");
+        String email = sc.nextLine();
+
+        try {
+            sql = "UPDATE MEMBER SET Pw = ?, Name = ?, Description = ?, Tel = ?, Email = ? WHERE U_id = ?;";
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setString(1, upw);
+            pstmt.setString(2, name);
+            pstmt.setString(3, description);
+            pstmt.setString(4, tel);
+            pstmt.setString(5, email);
+            pstmt.setString(6, Main.userid);
+            int state = pstmt.executeUpdate();
+            if (state == 1) {
+                System.out.println("회원정보 변경이 완료되었습니다.");
+            }
+        } catch (SQLException ex){
+            System.err.println("sql error = " + ex.getMessage());
+            System.exit(1);
         }
         return;
     }
