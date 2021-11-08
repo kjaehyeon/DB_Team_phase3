@@ -6,13 +6,13 @@ public class Main {
     static String userpw;
     static boolean is_admin;
 
-
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    public static final String USER_NAME ="DBTeam7";
+    public static final String USER_NAME ="university";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
     public static PreparedStatement pstmt = null;
     public static void main(String[] args) {
+
         int command;
         Scanner scanner = new Scanner(System.in);
 
@@ -25,7 +25,8 @@ public class Main {
             System.err.println("Cannot get a connection: " + ex.getMessage());
             System.exit(1);
         }
-
+        UserMainPage.listItems();
+        /*
         while(true){
                     System.out.println("1)로그인 2)회원가입 3)프로그램 종료");
                     command = scanner.nextInt();
@@ -41,7 +42,7 @@ public class Main {
                             System.out.println("프로그램이 종료됩니다.");
                             System.exit(1);
             }
-        }
+        }*/
     }
     static int LoginPage(){
         // id, pw받아서 DB에서 확인하고 MainPage로 넘어간다.
