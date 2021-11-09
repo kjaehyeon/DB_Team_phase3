@@ -138,6 +138,13 @@ public class AdminMainPage {
                         pstmt = Main.conn.prepareStatement(query);
                         pstmt.setString(1, u_id);
                         System.out.println(pstmt.executeUpdate());
+                        query = "UPDATE ITEM SET Current_price = (" +
+                                "    select MAX(i.current_priceprice)" +
+                                "    from item i" +
+                                "    where u_id = ?)";
+                        pstmt = Main.conn.prepareStatement(query);
+                        pstmt.setString(1, u_id);
+                        System.out.println(pstmt.executeUpdate());
                         System.out.println("회원 삭제 완료");
                     }catch (SQLException sqlException){
                         System.out.println(sqlException.getMessage());
@@ -203,18 +210,19 @@ public class AdminMainPage {
                         return 0;
                     case 2: //신고된 게시물 삭제 후 리포트 삭제
                         try{
-                            query = "delete from item where it_id=?";
-                            pstmt = Main.conn.prepareStatement(query);
-                            pstmt.setInt(1, it_id);
-                            System.out.println(pstmt.executeUpdate());
-
-                            query = "delete from report where report_id=?";
-                            pstmt = Main.conn.prepareStatement(query);
-                            pstmt.setInt(1, report_id);
-                            System.out.println(pstmt.executeUpdate());
+//                            query = "delete from item where it_id=?";
+//                            pstmt = Main.conn.prepareStatement(query);
+//                            pstmt.setInt(1, it_id);
+//                            System.out.println(pstmt.executeUpdate());
+//
+//                            query = "delete from report where report_id=?";
+//                            pstmt = Main.conn.prepareStatement(query);
+//                            pstmt.setInt(1, report_id);
+//                            System.out.println(pstmt.executeUpdate());
+                            UserMyPage.DeleteItem(it_id);
                             System.out.println("리포트 및 게시물 삭제 완료");
-                        }catch (SQLException sqlException){
-                            System.out.println(sqlException.getMessage());
+                        }catch (Exception Exception){
+                            System.out.println(Exception.getMessage());
                             System.out.println("리포트 및 게시물 삭제 실패");
                         }
                         return 0;
