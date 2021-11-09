@@ -12,7 +12,7 @@ public class UserMainPage {
     public static void selectMenu() {
         Scanner scan = new Scanner(System.in);
         while (true) {
-            System.out.println("1)상품목록 보기 2)상품검색 3)회원정보 수정 4)상품 등록하기 5)입찰한 상품 목록 6)시스템 종료");
+            System.out.println("1)상품목록 보기 2)상품검색 3)회원정보 수정 4)상품 등록하기 5)시스템 종료");
             int menu = scan.nextInt();
             switch (menu) {
                 case 1:
@@ -28,9 +28,6 @@ public class UserMainPage {
                     registerItem();
                     break;
                 case 5:
-                    listBidItems();
-                    break;
-                case 6:
                     try {
                         Main.conn.close();
                         scan.close();
@@ -74,6 +71,7 @@ public class UserMainPage {
                         state = "Expired";
                         break;
                     case "3":
+                    case "4":
                         state = "Completed";
                         break;
                 }
@@ -98,81 +96,94 @@ public class UserMainPage {
             System.out.println();
 
             Scanner scan = new Scanner(System.in);
-            Boolean loop = true;
-            while (loop) {
-                System.out.println("1)입찰하기 2)즉시 구매하기 3)뒤로가기 4)시스템 종료");
-                int menu = scan.nextInt();
-                switch (menu) {
-                    case 1:
-                        int price = 0;
-                        while (true) {
-                            System.out.printf("입찰가를 입력해주세요(최소 입찰 단위: %d원): ", minBidUnit);
-                            price = scan.nextInt();
-
-                            if (price <= currentPrice) {
-                                System.out.println("입찰가는 현재가보다 커야합니다");
-                            } else {
-                                if (((currentPrice - price) % minBidUnit) == 0) {
-                                    break;
-                                } else {
-                                    System.out.println("최소 입찰 단위를 맞춰주세요");
-                                }
-                            }
-                        }
-
-                        sql = "INSERT INTO BID"
-                                + " VALUES (SEQ_BID.NEXTVAL, ?, SYSDATE,"
-                                + " ?, ?)";
-                        pstmt = Main.conn.prepareStatement(sql);
-                        pstmt.setInt(1, price);
-                        pstmt.setString(2, "kKTixmkxQM");
-                        pstmt.setInt(3, item_id);
-
-                        int row_count = pstmt.executeUpdate();
-                        if (row_count == 1) {
-                            sql = "UPDATE ITEM"
-                                    + " SET current_price = ?"
-                                    + " WHERE it_id = ?";
-                            pstmt = Main.conn.prepareStatement(sql);
-                            pstmt.setInt(1, price);
-                            pstmt.setInt(2, item_id);
-
-                            row_count = pstmt.executeUpdate();
-                            if (row_count == 1) {
-                                System.out.println("입찰에 성공하였습니다");
-                            } else {
-                                System.out.println("현재가 업데이트에 실패하였습니다");
-                            }
-                        } else {
-                            System.out.println("입찰에 실패하였습니다");
-                        }
+            System.out.println("1)입찰하기 2)즉시 구매하기 3)뒤로가기 4)시스템 종료");
+            int menu = scan.nextInt();
+            switch (menu) {
+                case 1:
+                    if (!state.equals("In Progress")) {
+                        System.out.println("입찰할 수 없는 아이템입니다");
                         break;
-                    case 2:
+                    }
+                    int price = 0;
+                    while (true) {
+                        System.out.printf("입찰가를 입력해주세요(최소 입찰 단위: %d원): ", minBidUnit);
+                        price = scan.nextInt();
+
+                        if (price <= currentPrice) {
+                            System.out.println("입찰가는 현재가보다 커야합니다");
+                        } else {
+                            if (((currentPrice - price) % minBidUnit) == 0) {
+                                break;
+                            } else {
+                                System.out.println("최소 입찰 단위를 맞춰주세요");
+                            }
+                        }
+                    }
+
+                    sql = "INSERT INTO BID"
+                            + " VALUES (SEQ_BID.NEXTVAL, ?, SYSDATE,"
+                            + " ?, ?)";
+                    pstmt = Main.conn.prepareStatement(sql);
+                    pstmt.setInt(1, price);
+                    pstmt.setString(2, Main.userid);
+                    pstmt.setInt(3, item_id);
+
+                    int row_count = pstmt.executeUpdate();
+                    if (row_count == 1) {
                         sql = "UPDATE ITEM"
-                                + " SET current_price = ?,"
-                                + " is_end = 1"
+                                + " SET current_price = ?"
                                 + " WHERE it_id = ?";
                         pstmt = Main.conn.prepareStatement(sql);
-                        pstmt.setInt(1, quickPrice);
-                        pstmt.setInt(2, itemId);
+                        pstmt.setInt(1, price);
+                        pstmt.setInt(2, item_id);
 
                         row_count = pstmt.executeUpdate();
                         if (row_count == 1) {
-                            System.out.println("즉시 구매하였습니다");
+                            System.out.println("입찰에 성공하였습니다");
                         } else {
-                            System.out.println("구매 실패하였습니다");
+                            System.out.println("현재가 업데이트에 실패하였습니다");
                         }
+                    } else {
+                        System.out.println("입찰에 실패하였습니다");
+                    }
+                    break;
+                case 2:
+                    if (!state.equals("In Progress")) {
+                        System.out.println("즉시 구매할 수 없는 아이템입니다");
                         break;
-                    case 3:
-                        loop = false;
-                        break;
-                    case 4:
-                        scan.close();
-                        rs.close();
-                        pstmt.close();
-                        System.exit(0);
-                        break;
-                }
+                    }
+                    sql = "INSERT INTO BID"
+                            + " VALUES (SEQ_BID.NEXTVAL, ?, SYSDATE,"
+                            + " ?, ?)";
+                    pstmt = Main.conn.prepareStatement(sql);
+                    pstmt.setInt(1, quickPrice);
+                    pstmt.setString(2, Main.userid);
+                    pstmt.setInt(3, item_id);
+                    pstmt.executeUpdate();
+
+                    sql = "UPDATE ITEM"
+                            + " SET current_price = ?,"
+                            + " is_end = 1"
+                            + " WHERE it_id = ?";
+                    pstmt = Main.conn.prepareStatement(sql);
+                    pstmt.setInt(1, quickPrice);
+                    pstmt.setInt(2, itemId);
+
+                    row_count = pstmt.executeUpdate();
+                    if (row_count == 1) {
+                        System.out.println("즉시 구매하였습니다");
+                    } else {
+                        System.out.println("구매 실패하였습니다");
+                    }
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    scan.close();
+                    rs.close();
+                    pstmt.close();
+                    System.exit(0);
+                    break;
             }
 
             rs.close();
@@ -183,14 +194,13 @@ public class UserMainPage {
     }
 
     public static void listItems() {
-        int ad_id[] = {1, 2, 3};
         int count = 1;
 
         String sql = "SELECT it_id, u_id, expire_date, is_end, name"
                 + " FROM ITEM"
                 + " WHERE ad_id IN (";
-        for (int i = 0; i < ad_id.length; i++) {
-            sql += ad_id[i] + ",";
+        for (int location : Main.locations) {
+            sql += location + ",";
         }
         sql = sql.replaceFirst(".$", ")");
 
@@ -219,6 +229,7 @@ public class UserMainPage {
                         state = "Expired";
                         break;
                     case "3":
+                    case "4":
                         state = "Completed";
                         break;
                 }
@@ -295,14 +306,14 @@ public class UserMainPage {
             char is_expired;
             char is_completed;
             while (rs.next()) {
-                if(rs.getDate(3).toLocalDate().isBefore((now))){
+                if (rs.getDate(3).toLocalDate().isBefore((now))) {
                     is_expired = 'o';
-                } else{
+                } else {
                     is_expired = 'x';
                 }
-                if(rs.getString(4).equals("1")){
+                if (rs.getString(4).equals("1")) {
                     is_completed = 'o';
-                } else{
+                } else {
                     is_completed = 'x';
                 }
                 System.out.println(String.format("%-5s%-10s%-20s%-15s%-15s%s",
@@ -531,7 +542,7 @@ public class UserMainPage {
             pstmt.setDate(6, Date.valueOf(expiredDate));
             pstmt.setInt(7, startPrice);
             pstmt.setInt(8, categoryId);
-            pstmt.setString(9, "kKTixmkxQM");
+            pstmt.setString(9, Main.userid);
             pstmt.setString(10, adminList.get(randInt));
             pstmt.setInt(11, adressId);
 
@@ -545,76 +556,5 @@ public class UserMainPage {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static void listBidItems() {
-        int count = 1;
-        String sql = "SELECT B.b_id, B.price,"
-                + " B.create_date, I.is_end, I.name"
-                + " FROM BID B, ITEM I"
-                + " WHERE B.it_id = I.it_id"
-                + " AND B.u_id = ?";
-        try {
-            pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            pstmt.setString(1, "kKTixmkxQM");
-            ResultSet rs = pstmt.executeQuery();
-
-            System.out.println(String.format("%-5s%-7s%-10s%-20s%-20s%-10s%s",
-                    "idx",
-                    "b_id",
-                    "price",
-                    "create_date",
-                    "item_state",
-                    "bid",
-                    "item_name"));
-            System.out.println("-------------------------------------------------------------------------");
-
-            String state = null;
-            String bid = null;
-
-            while(rs.next()){
-                switch (rs.getString(4)) {
-                    case "0":
-                        state = "In Progress";
-                        break;
-                    case "1":
-                        state = "End Of Bid";
-                        break;
-                    case "2":
-                        state = "Expired";
-                        break;
-                    case "3":
-                        state = "Completed";
-                        break;
-                }
-                System.out.println(String.format("%-5s%-7s%-10s%-20s%-20s%-10s%s",
-                        count++,
-                        rs.getInt(1),
-                        rs.getInt(2),
-                        rs.getDate(3),
-                        state,
-                        rs.getString(5)
-                ));
-            }
-            System.out.println();
-
-            Scanner scan = new Scanner(System.in);
-            while(true){
-                System.out.println("1)평점 매기기 2)뒤로가기 3)시스템 종료");
-                int menu = scan.nextInt();
-                switch (menu){
-                    case 1:
-                        System.out.println("낙찰된 아이템의 사용자를 선택하세요");
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                        break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 }

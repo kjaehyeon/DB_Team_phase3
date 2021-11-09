@@ -29,7 +29,7 @@ public class Main {
             System.exit(1);
         }
 
-        /*while(true){
+        while(true){
             System.out.println("1)로그인 2)회원가입 3)관리자 로그인 4)프로그램 종료");
             command = scanner.nextInt();
             switch (command){
@@ -51,8 +51,7 @@ public class Main {
 //                  conn.close();
                     System.exit(1);
             }
-        }*/
-        UserMainPage.selectMenu();
+        }
     }
     static int LoginPage(){
         // id, pw받아서 DB에서 확인하고 MainPage로 넘어간다.
