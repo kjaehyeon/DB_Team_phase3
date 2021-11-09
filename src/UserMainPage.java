@@ -271,7 +271,7 @@ public class UserMainPage {
         System.out.println("해당 지역 내에 등록된 물품 중에서 검색합니다.");
         System.out.print("검색할 키워드를 입력하세요 : ");
         search = sc.nextLine();
-        String sql = "SELECT it_id, u_id, name"
+        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
                 + " FROM ITEM"
                 + " WHERE LOWER(name) LIKE " + String.format("'%%%s%%'", search)
                 + " AND ad_id IN (";
@@ -280,21 +280,66 @@ public class UserMainPage {
         }
         sql = sql.replaceFirst(".$", ")");
         try {
-            pstmt = Main.conn.prepareStatement(sql);
+            pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = pstmt.executeQuery();
-            System.out.println(String.format("%-5s%-10s%-20s%s",
+            System.out.println(String.format("%-5s%-10s%-20s%-15s%-15s%s",
                     "idx",
                     "item_id",
                     "seller_id",
+                    "is_expired",
+                    "is_completed",
                     "item_name"));
-            System.out.println("--------------------------------------------------------");
+            System.out.println("------------------------------------------------------------------------------");
 
+            LocalDate now = LocalDate.now();
+            char is_expired;
+            char is_completed;
             while (rs.next()) {
-                System.out.println(String.format("%-5d%-10d%-20s%s",
+                if(rs.getDate(3).toLocalDate().isBefore((now))){
+                    is_expired = 'o';
+                } else{
+                    is_expired = 'x';
+                }
+                if(rs.getString(4).equals("1")){
+                    is_completed = 'o';
+                } else{
+                    is_completed = 'x';
+                }
+                System.out.println(String.format("%-5s%-10s%-20s%-15s%-15s%s",
                         count++,
                         rs.getInt(1),
-                        rs.getString(3),
-                        rs.getString(2)));
+                        rs.getString(2),
+                        is_expired,
+                        is_completed,
+                        rs.getString(5)
+                ));
+            }
+            System.out.println();
+            while (true) {
+                System.out.println("1)아이템 상세 2)뒤로가기 3)시스템 종료");
+                int menu = sc.nextInt();
+                switch (menu) {
+                    case 1:
+                        System.out.println("아이템 index를 입력하세요");
+                        System.out.print("idx: ");
+                        int idx = sc.nextInt();
+
+                        rs.first();
+                        for (int i = 0; i < idx - 1; i++) {
+                            rs.next();
+                        }
+
+                        showItemDetail(rs.getInt(1));
+                        break;
+                    case 2:
+                        pstmt.close();
+                        return;
+                    case 3:
+                        sc.close();
+                        pstmt.close();
+                        Main.conn.close();
+                        System.exit(1);
+                }
             }
         } catch (SQLException ex) {
             System.err.println("sql error = " + ex.getMessage());
@@ -354,17 +399,17 @@ public class UserMainPage {
         System.out.print("변경할 이름 : ");
         String name = sc.nextLine();
         // 한 줄 소개 변경
-        System.out.println("변경할 소개글 : ");
+        System.out.print("변경할 소개글 : ");
         String description = sc.nextLine();
         // 전화번호 변경
-        System.out.println("변경할 휴대폰 번호 : ");
+        System.out.print("변경할 휴대폰 번호 : ");
         String tel = sc.nextLine();
         // email 변경
-        System.out.println("변경할 email : ");
+        System.out.print("변경할 email : ");
         String email = sc.nextLine();
 
         try {
-            sql = "UPDATE MEMBER SET Pw = ?, Name = ?, Description = ?, Tel = ?, Email = ? WHERE U_id = ?;";
+            sql = "UPDATE MEMBER SET Pw = ?, Name = ?, Description = ?, Tel = ?, Email = ? WHERE U_id = ?";
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setString(1, upw);
             pstmt.setString(2, name);

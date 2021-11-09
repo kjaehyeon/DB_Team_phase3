@@ -3,8 +3,8 @@ import java.util.*;
 import java.sql.*;
 
 public class Main {
-    static String userid;
-    static boolean is_admin;
+    static String userid="John123";
+    static boolean is_admin=false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
 
@@ -47,8 +47,8 @@ public class Main {
                     break;
                 case 4:
                     System.out.println("프로그램이 종료됩니다.");
-//                            pstmt.close();
-//                            conn.close();
+//                  pstmt.close();
+//                  conn.close();
                     System.exit(1);
             }
         }*/
@@ -210,12 +210,7 @@ public class Main {
                         AdminMainPage.showUserList();
                         break;
                     case 3:
-                        int is_success = AdminMainPage.addAdmin();
-                        if(is_success == 0){
-                            System.out.println("관리자 추가 성공!");
-                        }else{
-                            System.out.println("관리자 추가 실패!");
-                        }
+                        AdminMainPage.addAdmin();
                         break;
                     case 4:
                         return 0;
