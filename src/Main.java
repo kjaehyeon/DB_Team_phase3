@@ -3,13 +3,13 @@ import java.util.*;
 import java.sql.*;
 
 public class Main {
-    static String userid="John123";
+    static String userid=null;
     static boolean is_admin=false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
 
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    public static final String USER_NAME ="university";
+    public static final String USER_NAME ="DBTeam7";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
     static PreparedStatement pstmt = null;
@@ -84,7 +84,6 @@ public class Main {
                 System.err.println("sql error = " + ex.getMessage());
                 System.exit(1);
             }
-
         }
         try {
             sql = "SELECT Ad_id FROM LIVES_IN WHERE U_id = ?";
