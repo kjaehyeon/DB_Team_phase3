@@ -3,13 +3,13 @@ import java.util.*;
 import java.sql.*;
 
 public class Main {
-    static String userid;
-    static boolean is_admin;
+    static String userid="John123";
+    static boolean is_admin=false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
 
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    public static final String USER_NAME ="university";
+    public static final String USER_NAME ="DBTeam7";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
     static PreparedStatement pstmt = null;
@@ -208,12 +208,7 @@ public class Main {
                         AdminMainPage.showUserList();
                         break;
                     case 3:
-                        int is_success = AdminMainPage.addAdmin();
-                        if(is_success == 0){
-                            System.out.println("관리자 추가 성공!");
-                        }else{
-                            System.out.println("관리자 추가 실패!");
-                        }
+                        AdminMainPage.addAdmin();
                         break;
                     case 4:
                         return 0;
