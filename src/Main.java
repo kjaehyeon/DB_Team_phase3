@@ -3,7 +3,7 @@ import java.util.*;
 import java.sql.*;
 
 public class Main {
-    static String userid="John123";
+    static String userid=null;
     static boolean is_admin=false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
