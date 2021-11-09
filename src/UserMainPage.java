@@ -12,7 +12,7 @@ public class UserMainPage {
     public static void selectMenu() {
         Scanner scan = new Scanner(System.in);
         while (true) {
-            System.out.println("1)상품목록 보기 2)상품검색 3)회원정보 수정 4)상품 등록하기 5)시스템 종료");
+            System.out.println("1)상품목록 보기 2)상품검색 3)마이페이지 4)상품 등록하기 5)시스템 종료");
             int menu = scan.nextInt();
             switch (menu) {
                 case 1:
@@ -95,8 +95,20 @@ public class UserMainPage {
             }
             System.out.println();
 
+            ArrayList<String> adminList = new ArrayList<>();
+            Random random = new Random();
+            random.setSeed(System.currentTimeMillis());
+
+            Statement stmt = Main.conn.createStatement();
+            sql = "SELECT admin_id"
+                    + " FROM ADMIN";
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                adminList.add(rs.getString(1));
+            }
+
             Scanner scan = new Scanner(System.in);
-            System.out.println("1)입찰하기 2)즉시 구매하기 3)뒤로가기 4)시스템 종료");
+            System.out.println("1)입찰하기 2)즉시 구매하기 3)신고하기 4)뒤로가기 5)시스템 종료");
             int menu = scan.nextInt();
             switch (menu) {
                 case 1:
@@ -177,8 +189,29 @@ public class UserMainPage {
                     }
                     break;
                 case 3:
+                    System.out.println("신고내용을 작성해주세요");
+                    scan.nextLine();
+                    String description = scan.nextLine();
+
+                    sql = "INSERT INTO REPORT"
+                            + " VALUES (SEQ_REPORT.NEXTVAL, ?, ?,"
+                            + " ?, ?)";
+
+                    pstmt = Main.conn.prepareStatement(sql);
+                    pstmt.setString(1, description);
+                    pstmt.setString(2, Main.userid);
+                    pstmt.setInt(3, itemId);
+                    pstmt.setString(4, adminList.get(random.nextInt(adminList.size())));
+                    row_count = pstmt.executeUpdate();
+                    if (row_count == 1) {
+                        System.out.println("신고완료 되었습니다");
+                    } else {
+                        System.out.println("신고를 실패하였습니다");
+                    }
                     break;
                 case 4:
+                    break;
+                case 5:
                     scan.close();
                     rs.close();
                     pstmt.close();
