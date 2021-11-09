@@ -13,7 +13,7 @@ public class UserMyPage {
     public static void selectMenu(){
         Boolean loop = true;
         while(loop) {
-            System.out.println("1)입찰목록 조회 2)평점 조회 3)등록한 아이템 조회 4)회원정보 수정 5)뒤로 가기");
+            System.out.println("1)입찰목록 조회 2)평점 조회 3)등록한 아이템 조회 4)회원정보 수정 5)회원탈퇴 6)뒤로 가기");
             int menu = scan.nextInt();
             switch (menu){
                 case 1:
@@ -29,6 +29,9 @@ public class UserMyPage {
                     updateUserInfo();
                     break;
                 case 5:
+                    deleteUser(Main.userid);
+                    break;
+                case 6:
                     loop = false;
                     break;
             }
@@ -582,7 +585,21 @@ public class UserMyPage {
         }
     }
     public static void DeleteItem(int item_id) {
-        String sql = "DELETE FROM ITEM WHERE it_id = ?";
+        String sql = "DELETE FROM BID WHERE it_id = ? ";
+        try {
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setInt(1, item_id);
+            int state = pstmt.executeUpdate();
+            if (state == 1) {
+                System.out.println("성공적으로 상품에 관련된 입찰들을 지웠습니다");
+            } else {
+                System.out.println("상품에 관련된 입찰들을 지우는데 실패하였습니다");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sql = "DELETE FROM ITEM WHERE it_id = ?";
         try {
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setInt(1, item_id);
@@ -642,5 +659,26 @@ public class UserMyPage {
         //잠시보류
         System.out.println("상품별 후기 보기는 준비중에 있습니다.");
         //String sql = "SELECT "
+    }
+    public static void deleteUser(String user_id) {
+        try{
+            // 회원 삭제
+            String query = "delete from member where u_id=?";
+            pstmt = Main.conn.prepareStatement(query);
+            pstmt.setString(1, user_id);
+            System.out.println(pstmt.executeUpdate());
+            // 삭제한 회원이 입찰한 item의 current_price 변경해주기
+            query = "UPDATE ITEM SET Current_price = (" +
+                    "    select MAX(i.current_priceprice)" +
+                    "    from item i" +
+                    "    where u_id = ? AND Is_end = 0)";
+            pstmt = Main.conn.prepareStatement(query);
+            pstmt.setString(1, user_id);
+            System.out.println(pstmt.executeUpdate());
+            System.out.println("회원 삭제 완료");
+        }catch (SQLException sqlException){
+            System.out.println(sqlException.getMessage());
+            System.out.println("회원 삭제 실패");
+        }
     }
 }
