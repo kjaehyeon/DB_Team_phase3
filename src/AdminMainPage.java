@@ -5,6 +5,7 @@ public class AdminMainPage {
     static PreparedStatement pstmt= null;
     static ResultSet rs = null;
     static ResultSetMetaData rsmd = null;
+
     static int showReportList(){
         int order = 1;
         int command;
@@ -137,10 +138,11 @@ public class AdminMainPage {
                         pstmt = Main.conn.prepareStatement(query);
                         pstmt.setString(1, u_id);
                         System.out.println(pstmt.executeUpdate());
+                        System.out.println("회원 삭제 완료");
                     }catch (SQLException sqlException){
                         System.out.println(sqlException.getMessage());
+                        System.out.println("회원 삭제 실패");
                     }
-                    System.out.println("회원 삭제 완료");
                     return 0;
                 case 2:
                     return 0;
