@@ -1,7 +1,9 @@
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class UserMainPage {
 
@@ -31,6 +33,7 @@ public class UserMainPage {
                 case 6:
                     try {
                         Main.conn.close();
+                        scan.close();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -43,17 +46,24 @@ public class UserMainPage {
         String sql = "SELECT I.it_id, I.name, I.description," +
                 " I.min_bid_unit, I.quick_price, I.start_price," +
                 " I.current_price, I.create_date, I.expire_Date," +
-                " A.Name, C.Name" +
+                " I.is_end, A.Name, C.Name" +
                 " FROM ITEM I, CATEGORY C, ADDRESS A" +
                 " WHERE I.c_id = C.c_id" +
                 " AND I.ad_id = A.ad_id" +
+                " AND I.is_end = '0'" +
                 " AND I.it_id = " + item_id;
 
         try {
             pstmt = Main.conn.prepareStatement(sql);
 
             ResultSet rs = pstmt.executeQuery();
+            char is_completed;
             while (rs.next()) {
+                if(rs.getString(10).equals("0")){
+                    is_completed = 'o';
+                } else{
+                    is_completed = 'x';
+                }
                 System.out.printf("%-20s%s\n", "Item ID", rs.getInt(1));
                 System.out.printf("%-20s%s\n", "Item Name", rs.getString(2));
                 System.out.printf("%-20s%s\n", "Description", rs.getString(3));
@@ -63,8 +73,9 @@ public class UserMainPage {
                 System.out.printf("%-20s%s\n", "Current Price", rs.getInt(7));
                 System.out.printf("%-20s%s\n", "Create Date", rs.getDate(8));
                 System.out.printf("%-20s%s\n", "Expired Date", rs.getDate(9));
-                System.out.printf("%-20s%s\n", "Location", rs.getString(10));
-                System.out.printf("%-20s%s\n", "Category", rs.getString(11));
+                System.out.printf("%-20s%s\n", "Is Completed", is_completed);
+                System.out.printf("%-20s%s\n", "Location", rs.getString(11));
+                System.out.printf("%-20s%s\n", "Category", rs.getString(12));
             }
 
             rs.close();
@@ -78,7 +89,7 @@ public class UserMainPage {
         int ad_id[] = {1, 2, 3};
         int count = 1;
 
-        String sql = "SELECT it_id, name, u_id"
+        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
                 + " FROM ITEM"
                 + " WHERE ad_id IN (";
         for (int i = 0; i < ad_id.length; i++) {
@@ -90,19 +101,37 @@ public class UserMainPage {
             pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = pstmt.executeQuery();
 
-            System.out.println(String.format("%-5s%-10s%-20s%s",
+            System.out.println(String.format("%-5s%-10s%-20s%-15s%-15s%s",
                     "idx",
                     "item_id",
                     "seller_id",
+                    "is_expired",
+                    "is_completed",
                     "item_name"));
-            System.out.println("--------------------------------------------------------");
+            System.out.println("------------------------------------------------------------------------------");
 
+            LocalDate now = LocalDate.now();
+            char is_expired;
+            char is_completed;
             while (rs.next()) {
-                System.out.println(String.format("%-5d%-10d%-20s%s",
+                if(rs.getDate(3).toLocalDate().isBefore((now))){
+                    is_expired = 'o';
+                } else{
+                    is_expired = 'x';
+                }
+                if(rs.getString(4).equals("0")){
+                    is_completed = 'o';
+                } else{
+                    is_completed = 'x';
+                }
+                System.out.println(String.format("%-5s%-10s%-20s%-15s%-15s%s",
                         count++,
                         rs.getInt(1),
-                        rs.getString(3),
-                        rs.getString(2)));
+                        rs.getString(2),
+                        is_expired,
+                        is_completed,
+                        rs.getString(5)
+                        ));
             }
             System.out.println();
 
@@ -124,7 +153,6 @@ public class UserMainPage {
                         showItemDetail(rs.getInt(1));
                         break;
                     case 2:
-                        scan.close();
                         pstmt.close();
                         return;
                     case 3:
@@ -139,7 +167,7 @@ public class UserMainPage {
         }
     }
 
-    public static void searchItems(){
+    public static void searchItems() {
         Scanner sc = new Scanner(System.in);
         int count = 1;
         String search = null;
@@ -150,7 +178,7 @@ public class UserMainPage {
                 + " FROM ITEM"
                 + " WHERE LOWER(name) LIKE " + String.format("'%%%s%%'", search)
                 + " AND ad_id IN (";
-        for (int location : Main.locations){
+        for (int location : Main.locations) {
             sql += location + ",";
         }
         sql = sql.replaceFirst(".$", ")");
@@ -164,28 +192,28 @@ public class UserMainPage {
                     "item_name"));
             System.out.println("--------------------------------------------------------");
 
-            while(rs.next()){
+            while (rs.next()) {
                 System.out.println(String.format("%-5d%-10d%-20s%s",
                         count++,
                         rs.getInt(1),
                         rs.getString(3),
                         rs.getString(2)));
             }
-        } catch (SQLException ex){
+        } catch (SQLException ex) {
             System.err.println("sql error = " + ex.getMessage());
             System.exit(1);
         }
         return;
     }
 
-    public static void updateUserInfo(){
+    public static void updateUserInfo() {
         String upw = null;
         String sql = null;
         String pw = null;
         Scanner sc = new Scanner(System.in);
         System.out.println("회원정보를 수정하시려면 PW를 다시 입력해주세요");
         int count = 3;
-        while(true) {
+        while (true) {
             System.out.print("PW : ");
             upw = sc.nextLine();
             try {
@@ -193,33 +221,33 @@ public class UserMainPage {
                 pstmt = Main.conn.prepareStatement(sql);
                 pstmt.setString(1, Main.userid);
                 ResultSet rs = pstmt.executeQuery();
-                while(rs.next()){
+                while (rs.next()) {
                     pw = rs.getString(1);
                 }
-                if (upw.equals(pw)){
+                if (upw.equals(pw)) {
                     break;
-                } else{
+                } else {
                     System.out.println("비밀번호가 틀렸습니다");
-                    if (count == 0){
+                    if (count == 0) {
                         return;
                     }
                     System.out.println("다시 입력해주세요. " + count + "회 남았습니다.");
                     count--;
                     continue;
                 }
-            } catch (SQLException ex){
+            } catch (SQLException ex) {
                 System.err.println("sql error = " + ex.getMessage());
                 System.exit(1);
             }
         }
         //여기서 회원정보 수정
         // 비밀번호 변경
-        while (true){
+        while (true) {
             System.out.print("변경할 PW : ");
             upw = sc.nextLine();
             System.out.println("PW 확인 : ");
             pw = sc.nextLine();
-            if (upw.equals(pw)){
+            if (upw.equals(pw)) {
                 break;
             } else {
                 System.out.println("다시 입려해주세요");
@@ -251,7 +279,7 @@ public class UserMainPage {
             if (state == 1) {
                 System.out.println("회원정보 변경이 완료되었습니다.");
             }
-        } catch (SQLException ex){
+        } catch (SQLException ex) {
             System.err.println("sql error = " + ex.getMessage());
             System.exit(1);
         }
@@ -264,8 +292,9 @@ public class UserMainPage {
         int minBidUnit;
         int startPrice;
         int quickPrice;
-        int expiredDate;
+        String expiredDate;
         int adressId;
+        int categoryId;
 
         Scanner scan = new Scanner(System.in);
         System.out.println("등록할 상품 정보를 입력해주세요");
@@ -277,8 +306,9 @@ public class UserMainPage {
         minBidUnit = scan.nextInt();
         System.out.print("Start Price: ");
         startPrice = scan.nextInt();
+
         while (true) {
-            System.out.println("Quick Price: ");
+            System.out.print("Quick Price: ");
             quickPrice = scan.nextInt();
             if (quickPrice < startPrice) {
                 System.out.println("즉시구매가는 시작가보다 높아야 합니다");
@@ -286,11 +316,93 @@ public class UserMainPage {
                 break;
             }
         }
-        System.out.println("Expired Date(yyyy-mm-dd): ");
-        while (true){
+        scan.nextLine();
+        while (true) {
+            System.out.print("Expired Date(yyyy-mm-dd): ");
+            expiredDate = scan.nextLine();
 
+            boolean check = Pattern.matches(
+                    "(19|20)\\d{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])",
+                    expiredDate);
+            if (!check) {
+                System.out.println("잘못된 형식입니다");
+                continue;
+            }
+
+            LocalDate now = LocalDate.now();
+            LocalDate expired = LocalDate.parse(expiredDate);
+
+            if (expired.isBefore(now)) {
+                System.out.println("만료 날짜는 현재 날짜 이후여야 합니다");
+            } else {
+                break;
+            }
+        }
+        while (true) {
+            System.out.print("Address Id 1)동인동 2)삼덕동 3)성내1동: ");
+            adressId = scan.nextInt();
+            if (adressId >= 1 && adressId <= 3) {
+                break;
+            } else {
+                System.out.println("부적절한 값입니다");
+            }
         }
 
+        while (true) {
+            System.out.print("Category Id 1)디지털기기 2)생활가전 3)가구/인테리어: ");
+            categoryId = scan.nextInt();
+            if (categoryId >= 1 && categoryId <= 3) {
+                break;
+            } else {
+                System.out.println("부적절한 값입니다");
+            }
+        }
+        try {
+            ArrayList<String> adminList = new ArrayList<>();
+            Random random = new Random();
+            random.setSeed(System.currentTimeMillis());
+
+            Statement stmt = Main.conn.createStatement();
+            String sql = "SELECT admin_id"
+                    + " FROM ADMIN";
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                adminList.add(rs.getString(1));
+            }
+            int randInt = random.nextInt(adminList.size());
+
+            sql = "INSERT INTO ITEM(it_id, name, description,"
+                    + " min_bid_unit, quick_price, current_price,"
+                    + " expire_date, start_price, img, c_id,"
+                    + " u_id, admin_id, ad_id)"
+                    + " VALUES (SEQ_ITEM.NEXTVAL, ?, ?,"
+                    + " ?, ?, ?,"
+                    + " ?, ?, EMPTY_BLOB(), ?,"
+                    + " ?, ?, ?)";
+
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setString(1, itName);
+            pstmt.setString(2, description);
+            pstmt.setInt(3, minBidUnit);
+            pstmt.setInt(4, quickPrice);
+            pstmt.setInt(5, startPrice);
+            pstmt.setDate(6, Date.valueOf(expiredDate));
+            pstmt.setInt(7, startPrice);
+            pstmt.setInt(8, categoryId);
+            pstmt.setString(9, "kKTixmkxQM");
+            pstmt.setString(10, adminList.get(randInt));
+            pstmt.setInt(11, adressId);
+
+            int rowCount = pstmt.executeUpdate();
+            if (rowCount == 1) {
+                System.out.println("아이템이 등록되었습니다");
+            } else{
+                System.out.println("아이템 등록에 실패하였습니다");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void listBidItems() {
