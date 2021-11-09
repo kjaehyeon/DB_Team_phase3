@@ -12,7 +12,8 @@ public class UserMainPage {
     public static void selectMenu() {
         Scanner scan = new Scanner(System.in);
         while (true) {
-            System.out.println("1)상품목록 보기 2)상품검색 3)마이 페이지 4)상품 등록하기 5)시스템 종료");
+
+            System.out.println("1)상품목록 보기 2)상품검색 3)마이페이지 4)상품 등록하기 5)시스템 종료");
             int menu = scan.nextInt();
             switch (menu) {
                 case 1:
