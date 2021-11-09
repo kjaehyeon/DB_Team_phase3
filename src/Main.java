@@ -52,6 +52,7 @@ public class Main {
                     System.exit(1);
             }
         }
+        //UserMainPage.selectMenu();
     }
     static int LoginPage(){
         // id, pw받아서 DB에서 확인하고 MainPage로 넘어간다.
@@ -84,7 +85,6 @@ public class Main {
                 System.err.println("sql error = " + ex.getMessage());
                 System.exit(1);
             }
-
         }
         try {
             sql = "SELECT Ad_id FROM LIVES_IN WHERE U_id = ?";
