@@ -39,7 +39,45 @@ public class UserMyPage {
     }
 
     public static void listUserRatings(){
-
+        int count = 1;
+        System.out.println("===== 평점 목록 =====");
+        String sql = "SELECT Buy_id, Score, Description" +
+                " FROM RATING" +
+                " WHERE s_id = ?";
+        System.out.println(String.format("%-5s%-20s%-5s%s",
+                "idx",
+                "Buyer_id",
+                "Score",
+                "Description"));
+        System.out.println("------------------------------------------------------------------------------");
+        try {
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setString(1, Main.userid);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()) {
+                System.out.println(
+                        String.format("%-5s%-20s%-5d%s",
+                                count++,
+                                rs.getString(1),
+                                rs.getInt(2),
+                                rs.getString(3)
+                        )
+                );
+            }
+            System.out.println("------------------------------------------------------------------------------");
+            sql = "SELECT s_id, AVG(Score)" +
+                    " FROM Rating" +
+                    " WHERE s_id = ?" +
+                    " GROUP BY s_id";
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setString(1, Main.userid);
+            rs = pstmt.executeQuery();
+            while(rs.next()){
+                System.out.println("평균 평점 : " + rs.getDouble(2));
+            }
+        } catch(SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static void listMyItems(){
