@@ -47,8 +47,8 @@ public class Main {
                     break;
                 case 4:
                     System.out.println("프로그램이 종료됩니다.");
-//                            pstmt.close();
-//                            conn.close();
+//                  pstmt.close();
+//                  conn.close();
                     System.exit(1);
             }
         }
