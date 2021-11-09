@@ -582,7 +582,21 @@ public class UserMyPage {
         }
     }
     public static void DeleteItem(int item_id) {
-        String sql = "DELETE FROM ITEM WHERE it_id = ?";
+        String sql = "DELETE FROM BID WHERE it_id = ? ";
+        try {
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setInt(1, item_id);
+            int state = pstmt.executeUpdate();
+            if (state == 1) {
+                System.out.println("성공적으로 상품에 관련된 입찰들을 지웠습니다");
+            } else {
+                System.out.println("상품에 관련된 입찰들을 지우는데 실패하였습니다");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sql = "DELETE FROM ITEM WHERE it_id = ?";
         try {
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setInt(1, item_id);
