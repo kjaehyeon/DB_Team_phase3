@@ -211,6 +211,7 @@ public class Main {
                         AdminMainPage.addAdmin();
                         break;
                     case 4:
+                        is_admin=false;
                         return 0;
                     case 5:
                         System.exit(0);
