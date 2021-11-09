@@ -218,18 +218,6 @@ public class Main {
                 }
             }else{
                 UserMainPage.selectMenu();
-//                System.out.println("1)상품 목록 보기 등등");
-//                command = scanner.nextInt();
-//                switch (command){
-//                    case 1:
-//                        //showItemList();
-//                        break;
-//                    case 5: //뒤로가기
-//                        return 0;
-//                    case 6: //프로그램 종료
-//                        System.out.println("프로그램을 종료합니다.");
-//                        System.exit(0);
-//                }
             }
         }
     }
