@@ -664,10 +664,11 @@ public class UserMyPage {
             pstmt.setString(1, user_id);
             System.out.println(pstmt.executeUpdate());
             // 삭제한 회원이 입찰한 item의 current_price 변경해주기
-            query = "UPDATE ITEM SET Current_price = (" +
-                    "    select MAX(i.current_priceprice)" +
+            query = "UPDATE ITEM i2 SET Current_price = nvl((" +
+                    "    select MAX(i.current_price)" +
                     "    from item i" +
-                    "    where u_id = ? AND Is_end = 0)";
+                    "    where u_id = ? AND Is_end = 0), i2.start_price)" +
+                    "where i2.u_id="+user_id;
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
             System.out.println(pstmt.executeUpdate());

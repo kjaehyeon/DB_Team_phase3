@@ -216,8 +216,7 @@ public class AdminMainPage {
                             System.out.println(pstmt.executeUpdate());
                             UserMyPage.DeleteItem(it_id);
                             System.out.println("리포트 및 게시물 삭제 완료");
-
-                        }catch (Exception Exception){
+                        }catch (SQLException Exception){
                             System.out.println(Exception.getMessage());
                             System.out.println("리포트 및 게시물 삭제 실패");
                         }
