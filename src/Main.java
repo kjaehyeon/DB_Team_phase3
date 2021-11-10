@@ -47,8 +47,12 @@ public class Main {
                     break;
                 case 4:
                     System.out.println("프로그램이 종료됩니다.");
-//                  pstmt.close();
-//                  conn.close();
+                    try {
+                        pstmt.close();
+                        conn.close();
+                    } catch (Exception ex) {
+                    }
+
                     System.exit(1);
             }
         }
@@ -267,6 +271,11 @@ public class Main {
                         is_admin=false;
                         return 0;
                     case 5:
+                        try {
+                            pstmt.close();
+                            conn.close();
+                        } catch (Exception ex) {
+                        }
                         System.exit(0);
 
                 }
