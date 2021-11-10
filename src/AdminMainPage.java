@@ -268,4 +268,82 @@ public class AdminMainPage {
                 }
             }
     }
+    static void registerd_item_num_list(){
+        Scanner scanner = new Scanner(System.in);
+        ResultSet rs;
+        int categoryId;
+        String categoryName;
+        System.out.println("선택한 카테고리의 지역별 상품 개수를 출력합니다.");
+        try {
+            String query = "select c_id, name from category";
+            pstmt = Main.conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            rs = pstmt.executeQuery(query);
+            int index = 1;
+            while (rs.next()) {
+                System.out.print(index++ + ")" + rs.getString(2) + " ");
+            }
+            System.out.println();
+            int idx = scanner.nextInt();
+            if (idx < index && idx > 0) {
+                rs.first();
+                for (int i = 0; i < idx - 1; i++)
+                    rs.next();
+                categoryId = rs.getInt(1);
+                categoryName = rs.getString(2);
+
+                query = "select a.ad_id, a.name, count(*) as cnt\n" +
+                        "from address a, item i\n" +
+                        "where a.ad_id = i.ad_id\n" +
+                        "and i.c_id = ?\n" +
+                        "group by a.ad_id, a.name\n" +
+                        "order by cnt desc";
+                pstmt = Main.conn.prepareStatement(query);
+                pstmt.setInt(1, categoryId);
+                rs = pstmt.executeQuery();
+                System.out.println("지역별 등록된 "+categoryName+" 개수");
+                System.out.println("지역ID   지역명    상품개수");
+                System.out.println("---------------------------");
+                while(rs.next()){
+                    System.out.printf("%d   %s   %d\n", rs.getInt(1), rs.getString(2), rs.getInt(3));
+                }
+            } else {
+                System.out.println("부적절한 값입니다");
+                return;
+            }
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return;
+    }
+    static void inactivate_user(){
+        String query;
+        Scanner scanner = new Scanner(System.in);
+        ResultSet rs;
+        System.out.println("최근 n개월 동안 입찰에 참여 하지 않은 유저 목록을 조회합니다.");
+        try{
+            query = "select m.u_id, m.name, m.tel, m.email\n" +
+                    "from member m\n" +
+                    "where m.u_id in (\n" +
+                    "    select m1.u_id\n" +
+                    "    from member m1\n" +
+                    "    minus\n" +
+                    "    select distinct b.u_id\n" +
+                    "    from bid b\n" +
+                    "    where b.create_date > sysdate - ?*(interval '1' month))";
+            pstmt = Main.conn.prepareStatement(query);
+            System.out.print("탐색할 기간을 설정해 주세요(개월) : ");
+            int month = scanner.nextInt();
+            pstmt.setInt(1,month);
+            rs = pstmt.executeQuery();
+            System.out.printf("%-20s %-20s %-15s %-25s\n","User_ID","User_Name","TEL","EMAIL");
+            System.out.println("--------------------------------------------------------------------------");
+            while (rs.next()){
+                System.out.printf("%-20s %-20s %-15s %-25s\n", rs.getString(1),
+                        rs.getString(2),rs.getString(3),rs.getString(4));
+            }
+        }catch (SQLException sqlException){
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
 }
