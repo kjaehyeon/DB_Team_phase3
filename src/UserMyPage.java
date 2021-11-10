@@ -35,6 +35,7 @@ public class UserMyPage {
                     break;
                 case 6:
                     //내정보 + 평가 받은 횟수
+                    showMyInfo();
                     break;
                 case 7:
                     loop = false;
@@ -714,6 +715,7 @@ public class UserMyPage {
         int count = 3;
         while (true) {
             System.out.print("PW : ");
+            scan = new Scanner(System.in);
             upw = scan.nextLine();
             try {
                 sql = "SELECT Pw FROM MEMBER WHERE U_id = ?";
@@ -746,11 +748,11 @@ public class UserMyPage {
         ResultSet rs;
         //회원 상세 정보 확인
         try{
-            query = "select *" +
-                    " from member m, (select s_id, Count(*) as rating_count" +
-                    "                from rating" +
-                    "                GROUP BY s_id) rc" +
-                    " where s_id = m.u_id and m.u_id = 'FvSSshXQgP'";
+            query = "select m.u_id, m.pw, m.name, m.tel, m.email, m.average_score, m.description, NVL(rc.rating_count, 0)" +
+                    " from member m LEFT OUTER JOIN (select r.s_id, count(*) as rating_count" +
+                    "                        from rating r" +
+                    "                        GROUP BY r.s_id) rc ON m.u_id = rc.s_id" +
+                    " where m.u_id = ?";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, Main.userid);
             rs = pstmt.executeQuery();
@@ -760,12 +762,12 @@ public class UserMyPage {
             System.out.printf("User ID     : %20s\n",rs.getString(1));
             System.out.printf("User PW     : %20s\n",rs.getString(2));
             System.out.printf("NAME        : %20s\n",rs.getString(3));
-            System.out.printf("TEL         : %20s\n",rs.getString(6));
-            System.out.printf("EMAIL       : %20s\n",rs.getString(7));
-            System.out.printf("AVG Score   : %20s\n",rs.getString(5));
-            System.out.printf("User Description : %s\n",rs.getString(4));
-            System.out.printf("RatingCount : %20d\n", rs, rs.getInt(9));
-            System.out.println("\n--------------------------------------");
+            System.out.printf("TEL         : %20s\n",rs.getString(4));
+            System.out.printf("EMAIL       : %20s\n",rs.getString(5));
+            System.out.printf("AVG Score   : %20s\n",rs.getString(6));
+            System.out.printf("User Description : %s\n",rs.getString(7));
+            System.out.printf("RatingCount : %20d\n", rs.getInt(8));
+            System.out.println("--------------------------------------");
             rs.close();
         }catch (SQLException sqlException){
             System.out.println(sqlException.getMessage());

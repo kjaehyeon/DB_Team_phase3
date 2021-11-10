@@ -60,12 +60,12 @@ public class AdminMainPage {
         while(true){
             //회원 목록 출력하는 부분
             try{
-                String query = "select m.u_id, m.name, m.tel, m.email, rc.report_count" +
-                        " from member m, (select i.u_id, count(*) as report_count" +
+                String query = "select m.u_id, m.name, m.tel, m.email, NVL(rc.report_count, 0) as re_count" +
+                        " from member m LEFT JOIN (select i.u_id, count(*) as report_count" +
                         "                from report r, item i" +
                         "                where r.it_id = i.it_id" +
-                        "                GROUP BY i.u_id) rc" +
-                        " where m.u_id = rc.u_id";
+                        "                GROUP BY i.u_id) rc ON m.u_id = rc.u_id" +
+                        " ORDER BY re_count DESC";
                 pstmt = Main.conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 rs = pstmt.executeQuery();
                 rsmd = rs.getMetaData();
@@ -286,5 +286,65 @@ public class AdminMainPage {
                     return 0;
                 }
             }
+    }
+    public static void reportUserListN() {
+        int order = 1;
+        int command;
+        Scanner sc = new Scanner(System.in);
+        System.out.print("몇 회 이상 신고된 유저를 조회할까요?(ex. 3) : ");
+        int count = sc.nextInt();
+        String sql = "select m.u_id, m.pw, m.name, m.tel, m.email, m.average_score" +
+                " from member m  " +
+                " where EXISTS (select i.u_id, count(*)" +
+                "                from report r, item i" +
+                "                where r.it_id = i.it_id and m.u_id = i.u_id" +
+                "                GROUP BY i.u_id" +
+                "                HAVING count(*) >= ?)";
+        while (true) {
+            try {
+                pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                pstmt.setInt(1, count);
+                rs = pstmt.executeQuery();
+                System.out.printf("%6s) %-20s %-20s %-25s %-15s %-25s %-13s",
+                                "Index","User_id", "PW", "Name", "Tel", "Email", "Average_Score");
+                System.out.println("\n-----------------------------------------------------------------------------------------------------------------------------------");
+                while (rs.next()) {
+                    System.out.printf("%6d) %-20s %-20s %-25s %-15s %-25s %-13d",
+                            order++,
+                            rs.getString(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getString(5),
+                            rs.getInt(6));
+                    System.out.println();
+                }
+                System.out.println("-----------------------------------------------------------------------------------------------------------------------------------");
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+                System.out.println(ex.getErrorCode());
+            }
+            //커멘드 입력
+            System.out.print("0)뒤로가기 order)해당 회원 상세페이지\n입력 : ");
+            command = sc.nextInt();
+            if (command == 0)
+                return;
+            else if (command <= order) {
+                order = 1;
+                //입력 받은 순번의 user id 받음
+                try {
+                    rs.first();
+                    for (int i = 0; i < command - 1; i++)
+                        rs.next();
+                    memberDetail(rs.getString(1));
+                } catch (SQLException Ex) {
+                    System.out.println(Ex.getMessage());
+                }
+            } else {
+                order = 1;
+                System.out.println("Invalid command");
+            }
+
+        }
     }
 }
