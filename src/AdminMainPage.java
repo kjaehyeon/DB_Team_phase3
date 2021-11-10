@@ -60,21 +60,28 @@ public class AdminMainPage {
         while(true){
             //회원 목록 출력하는 부분
             try{
-                String query = "select u_id,name,tel,email from member";
+                String query = "select m.u_id, m.name, m.tel, m.email, rc.report_count" +
+                        " from member m, (select i.u_id, count(*) as report_count" +
+                        "                from report r, item i" +
+                        "                where r.it_id = i.it_id" +
+                        "                GROUP BY i.u_id) rc" +
+                        " where m.u_id = rc.u_id";
                 pstmt = Main.conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 rs = pstmt.executeQuery();
                 rsmd = rs.getMetaData();
                 int cnt = rsmd.getColumnCount();
                 System.out.println();
+                System.out.print("index ");
                 for(int i=1; i<=cnt; i++){
-                    System.out.print(rsmd.getColumnName(i)+"\t");
+                    System.out.print(rsmd.getColumnName(i)+"\t\t\t\t");
                 }
-                System.out.println("\n-------------------------------------");
+                System.out.println("\n----------------------------------------------------------------------------------------------------------");
                 while(rs.next()){
-                    System.out.printf("%4d) %-12s %-20s %-12s %-20s",order++, rs.getString(1),rs.getString(2),
-                            rs.getString(3),rs.getString(4));
+                    System.out.printf("%4d) %-12s %-20s %-12s %-20s %10d",order++, rs.getString(1),rs.getString(2),
+                            rs.getString(3),rs.getString(4), rs.getInt(5));
                     System.out.println();
                 }
+                System.out.println("----------------------------------------------------------------------------------------------------------");
 
             }catch (SQLException sqlException){
                 System.out.println(sqlException.getMessage());
@@ -106,7 +113,9 @@ public class AdminMainPage {
         String query;
         //회원 상세 정보 확인
         try{
-            query = "select * from member where u_id=?";
+            query = "select * " +
+                    " from member " +
+                    " where u_id=?";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1,u_id);
             rs = pstmt.executeQuery();
@@ -120,7 +129,17 @@ public class AdminMainPage {
             System.out.printf("EMAIL       : %20s\n",rs.getString(7));
             System.out.printf("AVG Score   : %20s\n",rs.getString(5));
             System.out.printf("User Description : %s\n",rs.getString(4));
-            System.out.println("--------------------------------------");
+            System.out.print("Address     : ");
+            query = "SELECT A.Name" +
+                    " FROM ADDRESS A, LIVES_IN L" +
+                    " WHERE A.Ad_id = L.Ad_id  AND L.U_id = ?";
+            pstmt = Main.conn.prepareStatement(query);
+            pstmt.setString(1, u_id);
+            rs = pstmt.executeQuery();
+            while(rs.next()) {
+                System.out.printf("%s | ", rs.getString(1));
+            }
+            System.out.println("\n--------------------------------------");
             rs.close();
         }catch (SQLException sqlException){
             System.out.println(sqlException.getMessage());
