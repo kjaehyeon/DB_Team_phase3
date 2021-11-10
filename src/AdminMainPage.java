@@ -60,22 +60,29 @@ public class AdminMainPage {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             //회원 목록 출력하는 부분
-            try {
-                String query = "select u_id,name,tel,email from member";
+            try{
+                String query = "select m.u_id, m.name, m.tel, m.email, NVL(rc.report_count, 0) as re_count" +
+                        " from member m LEFT JOIN (select i.u_id, count(*) as report_count" +
+                        "                from report r, item i" +
+                        "                where r.it_id = i.it_id" +
+                        "                GROUP BY i.u_id) rc ON m.u_id = rc.u_id" +
+                        " ORDER BY re_count DESC";
                 pstmt = Main.conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 rs = pstmt.executeQuery();
                 rsmd = rs.getMetaData();
                 int cnt = rsmd.getColumnCount();
                 System.out.println();
-                for (int i = 1; i <= cnt; i++) {
-                    System.out.print(rsmd.getColumnName(i) + "\t");
+                System.out.print("index ");
+                for(int i=1; i<=cnt; i++){
+                    System.out.print(rsmd.getColumnName(i)+"\t\t\t\t");
                 }
-                System.out.println("\n-------------------------------------");
-                while (rs.next()) {
-                    System.out.printf("%4d) %-12s %-20s %-12s %-20s", order++, rs.getString(1), rs.getString(2),
-                            rs.getString(3), rs.getString(4));
+                System.out.println("\n----------------------------------------------------------------------------------------------------------");
+                while(rs.next()){
+                    System.out.printf("%4d) %-12s %-20s %-12s %-20s %10d",order++, rs.getString(1),rs.getString(2),
+                            rs.getString(3),rs.getString(4), rs.getInt(5));
                     System.out.println();
                 }
+                System.out.println("----------------------------------------------------------------------------------------------------------");
 
             } catch (SQLException sqlException) {
                 System.out.println(sqlException.getMessage());
@@ -107,22 +114,34 @@ public class AdminMainPage {
         int command;
         String query;
         //회원 상세 정보 확인
-        try {
-            query = "select * from member where u_id=?";
+        try{
+            query = "select * " +
+                    " from member " +
+                    " where u_id=?";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, u_id);
             rs = pstmt.executeQuery();
             rs.next();
             System.out.println("User Information");
             System.out.println("---------------------------------------");
-            System.out.printf("User ID     : %20s\n", rs.getString(1));
-            System.out.printf("User PW     : %20s\n", rs.getString(2));
-            System.out.printf("NAME        : %20s\n", rs.getString(3));
-            System.out.printf("TEL         : %20s\n", rs.getString(6));
-            System.out.printf("EMAIL       : %20s\n", rs.getString(7));
-            System.out.printf("AVG Score   : %20s\n", rs.getString(5));
-            System.out.printf("User Description : %s\n", rs.getString(4));
-            System.out.println("--------------------------------------");
+            System.out.printf("User ID     : %20s\n",rs.getString(1));
+            System.out.printf("User PW     : %20s\n",rs.getString(2));
+            System.out.printf("NAME        : %20s\n",rs.getString(3));
+            System.out.printf("TEL         : %20s\n",rs.getString(6));
+            System.out.printf("EMAIL       : %20s\n",rs.getString(7));
+            System.out.printf("AVG Score   : %20s\n",rs.getString(5));
+            System.out.printf("User Description : %s\n",rs.getString(4));
+            System.out.print("Address     : ");
+            query = "SELECT A.Name" +
+                    " FROM ADDRESS A, LIVES_IN L" +
+                    " WHERE A.Ad_id = L.Ad_id  AND L.U_id = ?";
+            pstmt = Main.conn.prepareStatement(query);
+            pstmt.setString(1, u_id);
+            rs = pstmt.executeQuery();
+            while(rs.next()) {
+                System.out.printf("%s | ", rs.getString(1));
+            }
+            System.out.println("\n--------------------------------------");
             rs.close();
         } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
@@ -389,6 +408,66 @@ public class AdminMainPage {
             rs.close();
         } catch (Exception e){
             e.printStackTrace();
+        }
+    }
+    public static void reportUserListN() {
+        int order = 1;
+        int command;
+        Scanner sc = new Scanner(System.in);
+        System.out.print("몇 회 이상 신고된 유저를 조회할까요?(ex. 3) : ");
+        int count = sc.nextInt();
+        String sql = "select m.u_id, m.pw, m.name, m.tel, m.email, m.average_score" +
+                " from member m  " +
+                " where EXISTS (select i.u_id, count(*)" +
+                "                from report r, item i" +
+                "                where r.it_id = i.it_id and m.u_id = i.u_id" +
+                "                GROUP BY i.u_id" +
+                "                HAVING count(*) >= ?)";
+        while (true) {
+            try {
+                pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                pstmt.setInt(1, count);
+                rs = pstmt.executeQuery();
+                System.out.printf("%6s) %-20s %-20s %-25s %-15s %-25s %-13s",
+                                "Index","User_id", "PW", "Name", "Tel", "Email", "Average_Score");
+                System.out.println("\n-----------------------------------------------------------------------------------------------------------------------------------");
+                while (rs.next()) {
+                    System.out.printf("%6d) %-20s %-20s %-25s %-15s %-25s %-13d",
+                            order++,
+                            rs.getString(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getString(5),
+                            rs.getInt(6));
+                    System.out.println();
+                }
+                System.out.println("-----------------------------------------------------------------------------------------------------------------------------------");
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+                System.out.println(ex.getErrorCode());
+            }
+            //커멘드 입력
+            System.out.print("0)뒤로가기 order)해당 회원 상세페이지\n입력 : ");
+            command = sc.nextInt();
+            if (command == 0)
+                return;
+            else if (command <= order) {
+                order = 1;
+                //입력 받은 순번의 user id 받음
+                try {
+                    rs.first();
+                    for (int i = 0; i < command - 1; i++)
+                        rs.next();
+                    memberDetail(rs.getString(1));
+                } catch (SQLException Ex) {
+                    System.out.println(Ex.getMessage());
+                }
+            } else {
+                order = 1;
+                System.out.println("Invalid command");
+            }
+
         }
     }
 }
