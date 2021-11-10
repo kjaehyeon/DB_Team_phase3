@@ -343,7 +343,8 @@ public class UserMyPage {
         System.out.println("===== 낙찰 완료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listCompletedItems() {
@@ -351,7 +352,8 @@ public class UserMyPage {
         System.out.println("===== 거래 완료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listMyExpiredItems() {
@@ -359,7 +361,8 @@ public class UserMyPage {
         System.out.println("===== 기간 만료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listMyInProgressItems() {
