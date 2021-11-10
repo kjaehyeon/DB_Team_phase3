@@ -340,33 +340,33 @@ public class UserMyPage {
     public static void listMyEndOfBidItems() {
         int count = 1;
         System.out.println("===== 낙찰 완료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 1 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
         listMyItemsList(sql);
     }
     public static void listCompletedItems() {
         int count = 1;
         System.out.println("===== 거래 완료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 3 OR is_end = 4 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
         listMyItemsList(sql);
     }
     public static void listMyExpiredItems() {
         int count = 1;
         System.out.println("===== 기간 만료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 2 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
         listMyItemsList(sql);
     }
     public static void listMyInProgressItems() {
         int count = 1;
         System.out.println("===== 판매 중 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 0 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, I.A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?";
         listMyItemsList(sql);
     }
 
@@ -376,12 +376,13 @@ public class UserMyPage {
             pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             pstmt.setString(1, Main.userid);
             ResultSet rs = pstmt.executeQuery();
-            System.out.println(String.format("%-5s%-10s%-20s%-15s%s",
+            System.out.println(String.format("%-5s%-10s%-20s%-15s%-20s%-10s",
                     "idx",
                     "item_id",
                     "seller_id",
                     "state",
-                    "item_name"));
+                    "item_name",
+                    "address"));
             System.out.println("------------------------------------------------------------------------------");
 
             String state = null;
@@ -401,12 +402,13 @@ public class UserMyPage {
                         state = "Completed";
                         break;
                 }
-                System.out.println(String.format("%-5s%-10s%-20s%-15s%s",
+                System.out.println(String.format("%-5s%-10s%-20s%-15s%-20s%-10s",
                         count++,
                         rs.getInt(1),
                         rs.getString(2),
                         state,
-                        rs.getString(5)
+                        rs.getString(5),
+                        rs.getString(6)
                 ));
             }
             System.out.println();
@@ -441,8 +443,6 @@ public class UserMyPage {
             System.exit(1);
         }
     }
-
-
     public static void showMyItemDetail(int item_id, String is_end) {
         String sql = "SELECT I.it_id, I.name, I.description," +
                 " I.min_bid_unit, I.quick_price, I.start_price," +
