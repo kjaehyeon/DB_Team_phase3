@@ -257,7 +257,9 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while(true){
             if(is_admin){
-                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)뒤로 가기 5)프로그램 종료");
+                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)신고 받은 유저 목록 5)상품 미등록 유저 6)최근에 등록된 아이템 조회\n" +
+                        "7)평가 받은 유저 조회 8)각 지역별 최고 평점 유저 9)지역별 등록 상품 개수 10)평가 받지 않은 유저 목록\n" +
+                        "11)신고 되지 않은 아이템 12)뒤로 가기 13)프로그램 종료");
                 command = scanner.nextInt();
                 switch (command){
                     case 1:
@@ -269,17 +271,16 @@ public class Main {
                     case 3:
                         AdminMainPage.addAdmin();
                         break;
-                    case 4:
+                    case 12:
                         is_admin=false;
                         return;
-                    case 5:
+                    case 13:
                         try {
                             pstmt.close();
                             conn.close();
                         } catch (Exception ex) {
                         }
                         System.exit(0);
-
                 }
             }else{
                 UserMainPage.selectMenu();
