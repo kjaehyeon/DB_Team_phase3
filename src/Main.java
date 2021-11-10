@@ -9,7 +9,7 @@ public class Main {
 
 
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    public static final String USER_NAME ="university";
+    public static final String USER_NAME ="DBTeam7";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
     static PreparedStatement pstmt = null;
