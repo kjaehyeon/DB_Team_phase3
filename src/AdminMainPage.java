@@ -210,7 +210,6 @@ public class AdminMainPage {
                         return 0;
                     case 2: //신고된 게시물 삭제 후 리포트 삭제
                         try{
-
                             query = "delete from report where report_id=?";
                             pstmt = Main.conn.prepareStatement(query);
                             pstmt.setInt(1, report_id);
