@@ -46,7 +46,8 @@ public class UserMyPage {
                 + " I.is_end, I.name, I.current_price, I.u_id, I.it_id"
                 + " FROM BID B, ITEM I"
                 + " WHERE B.it_id = I.it_id"
-                + " AND B.u_id = ?";
+                + " AND B.u_id = ?"
+                + " ORDER BY B.create_date DESC";
         try {
             pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             pstmt.setString(1, Main.userid);
