@@ -259,7 +259,7 @@ public class Main {
             if(is_admin){
                 System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)n개의 신고 받은 유저 목록 5)상품 미등록 유저 6)최근에 등록된 아이템 조회\n" +
                         "7)평가 받은 유저 조회 8)각 지역별 최고 평점 유저 9)지역별 등록 상품 개수 10)평가 받지 않은 유저 목록\n" +
-                        "11)신고 되지 않은 아이템 12)뒤로 가기 13)프로그램 종료");
+                        "11)일정금액이상의 물품 개수 조회 12)뒤로 가기 13)프로그램 종료 18)");
                 command = scanner.nextInt();
                 switch (command){
                     case 1:
@@ -274,9 +274,13 @@ public class Main {
                     case 4:
                         AdminMainPage.reportUserListN();
                         break;
+                    case 11:
+                        AdminMainPage.overPriceCategory();
+                        break;
                     case 12:
                         is_admin=false;
                         return;
+                    
                     case 13:
                         try {
                             pstmt.close();

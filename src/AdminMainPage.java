@@ -347,4 +347,35 @@ public class AdminMainPage {
 
         }
     }
+    public static void overPriceCategory(){
+        System.out.println("평균 등록가가 N만원 이상인 카테고리의 이름과 해당 카테고리에 등록된 물품 수를 이릉의 오름차순으로 출력합니다");
+        Scanner sc = new Scanner(System.in);
+        System.out.print("금액(원, ex. 45000): ");
+        int price = sc.nextInt();
+        String sql = "SELECT C.Name, COUNT(*)\n" +
+                "FROM CATEGORY C JOIN ITEM I ON C.C_id = I.C_id\n" +
+                "WHERE C.C_id IN (\n" +
+                "    SELECT C.C_id\n" +
+                "    FROM CATEGORY C, ITEM I\n" +
+                "    WHERE C.C_id = I.C_id\n" +
+                "    GROUP BY C.C_id\n" +
+                "    HAVING AVG(I.Start_price) >= ?\n" +
+                "    )\n" +
+                "GROUP BY C.Name\n" +
+                "ORDER BY C.Name ASC";
+        try {
+            pstmt = Main.conn.prepareStatement(sql);
+            pstmt.setInt(1, price);
+            rs = pstmt.executeQuery();
+            System.out.printf("%-20s %11s", "Category Name", "item_counts\n");
+            System.out.println("------------------------------------");
+            while(rs.next()){
+                System.out.printf("%-20s %11d\n", rs.getString(1), rs.getInt(2));
+            }
+            System.out.println("------------------------------------");
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+            System.out.println(ex.getErrorCode());
+        }
+    }
 }
