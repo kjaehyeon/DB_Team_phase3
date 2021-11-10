@@ -701,4 +701,69 @@ public class UserMyPage {
             System.out.println("회원 삭제 실패");
         }
     }
+    public static void showMyInfo(){
+        String upw = null;
+        String sql = null;
+        String pw = null;
+        System.out.println("회원정보를 보려면 PW를 다시 입력해주세요");
+        int count = 3;
+        while (true) {
+            System.out.print("PW : ");
+            upw = scan.nextLine();
+            try {
+                sql = "SELECT Pw FROM MEMBER WHERE U_id = ?";
+                pstmt = Main.conn.prepareStatement(sql);
+                pstmt.setString(1, Main.userid);
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()) {
+                    pw = rs.getString(1);
+                }
+                if (upw.equals(pw)) {
+                    break;
+                } else {
+                    System.out.println("비밀번호가 틀렸습니다");
+                    if (count == 0) {
+                        return;
+                    }
+                    System.out.println("다시 입력해주세요. " + count + "회 남았습니다.");
+                    count--;
+                    continue;
+                }
+            } catch (SQLException ex) {
+                System.err.println("sql error = " + ex.getMessage());
+                System.exit(1);
+            }
+        }
+        MyDetail();
+    }
+    public static void MyDetail(){
+        String query;
+        ResultSet rs;
+        //회원 상세 정보 확인
+        try{
+            query = "select *" +
+                    " from member m, (select s_id, Count(*) as rating_count" +
+                    "                from rating" +
+                    "                GROUP BY s_id) rc" +
+                    " where s_id = m.u_id and m.u_id = 'FvSSshXQgP'";
+            pstmt = Main.conn.prepareStatement(query);
+            pstmt.setString(1, Main.userid);
+            rs = pstmt.executeQuery();
+            rs.next();
+            System.out.println("User Information");
+            System.out.println("---------------------------------------");
+            System.out.printf("User ID     : %20s\n",rs.getString(1));
+            System.out.printf("User PW     : %20s\n",rs.getString(2));
+            System.out.printf("NAME        : %20s\n",rs.getString(3));
+            System.out.printf("TEL         : %20s\n",rs.getString(6));
+            System.out.printf("EMAIL       : %20s\n",rs.getString(7));
+            System.out.printf("AVG Score   : %20s\n",rs.getString(5));
+            System.out.printf("User Description : %s\n",rs.getString(4));
+            System.out.printf("RatingCount : %20d\n", rs, rs.getInt(9));
+            System.out.println("\n--------------------------------------");
+            rs.close();
+        }catch (SQLException sqlException){
+            System.out.println(sqlException.getMessage());
+        }
+    }
 }
