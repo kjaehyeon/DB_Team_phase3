@@ -171,6 +171,7 @@ public class Main {
             }
 
             System.out.print("입력형태(1,2,3 띄어쓰기 X): ");
+
             for (String ex : sc.nextLine().split(",")) {
                 address_ids.add(Integer.valueOf(ex));
             }
@@ -194,12 +195,13 @@ public class Main {
             if (state == 1) {
                 System.out.println("회원가입이 완료되었습니다.");
             }
+            sql = "INSERT INTO LIVES_IN VALUES(?, ?)";
+            pstmt = conn.prepareStatement(sql);
             for (Integer add : address_ids){
-                sql = "INSERT INTO LIVES_IN VALUES(?, ?)";
-                pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, uid);
                 pstmt.setInt(2, add);
                 pstmt.addBatch();
+                pstmt.clearParameters();
             }
             int state1[] = pstmt.executeBatch();
             for (int s : state1){
@@ -256,9 +258,10 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while(true){
             if(is_admin){
-                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)n개의 신고 받은 유저 목록 5)최근 상품등록 하지 않은 유저 \n" +
-                        "6)최근에 등록된 아이템 조회 7)평점을 몇개 이상 받은 유저 8)상품을 몇개 이상 등록한 유저 9)선택한 카테고리의 지역별 상품 개수 \n" +
-                        "10)최근 입찰하지 않은 유저 11)일정금액 이상의 물품 개수 조회 12)뒤로 가기 13)프로그램 종료");
+                System.out.println("1)신고 목록 확인                   2)회원 목록 확인           3)관리자 추가                  4)n개의 신고 받은 유저 목록 \n" +
+                                   "5)최근 상품등록 하지 않은 유저       6)최근에 등록된 아이템 조회  7)평점을 몇개 이상 받은 유저     8)상품을 몇개 이상 등록한 유저 \n" +
+                                   "9)선택한 카테고리의 지역별 상품 개수 10)최근 입찰하지 않은 유저   11)평균금액이 일정금액 이상인 카테고리별 아이템 개수 \n" +"" +
+                                   "12)뒤로 가기                     13)프로그램 종료");
 
                 command = scanner.nextInt();
                 switch (command){

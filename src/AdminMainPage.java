@@ -61,12 +61,12 @@ public class AdminMainPage {
         while (true) {
             //회원 목록 출력하는 부분
             try{
-                String query = "select m.u_id, m.name, m.tel, m.email, NVL(rc.report_count, 0) as re_count" +
+                String query = "select m.u_id, m.name, m.tel, m.email, NVL(rc.report_count, 0) as reports_count" +
                         " from member m LEFT JOIN (select i.u_id, count(*) as report_count" +
                         "                from report r, item i" +
                         "                where r.it_id = i.it_id" +
                         "                GROUP BY i.u_id) rc ON m.u_id = rc.u_id" +
-                        " ORDER BY re_count DESC";
+                        " ORDER BY reports_count DESC";
                 pstmt = Main.conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 rs = pstmt.executeQuery();
                 rsmd = rs.getMetaData();
@@ -153,19 +153,34 @@ public class AdminMainPage {
             command = scanner.nextInt();
             switch (command) {
                 case 1:
-                    //오류 발생합니당.
                     try {
                         query = "delete from member where u_id=?";
                         pstmt = Main.conn.prepareStatement(query);
                         pstmt.setString(1, u_id);
                         System.out.println(pstmt.executeUpdate());
-                        query = "UPDATE ITEM SET Current_price = (" +
-                                "    select MAX(i.current_priceprice)" +
-                                "    from item i" +
-                                "    where u_id = ?)";
+                        // 삭제한 회원이 입찰한 item의 current_price 변경해주기
+                        query = "select i.it_id, MAX(b.price)" +
+                                " from bid b, item i" +
+                                " where b.it_id = i.it_id AND i.Is_end = 0" +
+                                "                    AND b.u_id = ?" +
+                                " GROUP BY i.it_id";
                         pstmt = Main.conn.prepareStatement(query);
                         pstmt.setString(1, u_id);
-                        System.out.println(pstmt.executeUpdate());
+                        ResultSet rs = pstmt.executeQuery();
+                        while(rs.next()){
+                            String sql = "UPDATE ITEM SET Current_price = ? WHERE it_id = ?";
+                            try {
+                                pstmt.setInt(1, rs.getInt(1));
+                                pstmt.setString(2, rs.getString(2));
+                                pstmt.executeUpdate();
+                                //System.out.println();
+                            } catch (SQLException ex){
+                                System.out.println(ex.getMessage());
+                                System.out.println("회원 삭제 실패");
+                            }
+                        }
+                        pstmt.executeUpdate();
+                        //System.out.println();
                         System.out.println("회원 삭제 완료");
                     } catch (SQLException sqlException) {
                         System.out.println(sqlException.getMessage());
@@ -262,14 +277,33 @@ public class AdminMainPage {
     }
 
     static int addAdmin() {
-        String id;
+        String id = null;
         String pw;
         String name;
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("관리자로 등록할 ID, PW, Name을 입력해주세요.");
-            System.out.print("ID : ");
-            id = scanner.nextLine().trim();
+            boolean loop = true;
+            while(loop){
+                System.out.print("ID : ");
+                id = scanner.nextLine();
+                try {
+                    String sql = "SELECT COUNT(*) FROM ADMIN WHERE Admin_id = ?";
+                    pstmt = Main.conn.prepareStatement(sql);
+                    pstmt.setString(1, id);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()){
+                        if(rs.getInt(1) == 1) {
+                            System.out.println("해당 ID가 이미 존재합니다. 다른 ID를 입력해주세요");
+                        } else if (rs.getInt(1) == 0){
+                            loop = false;
+                        }
+                    }
+                } catch (SQLException ex) {
+                    System.err.println("sql error = " + ex.getMessage());
+                    System.exit(1);
+                }
+            }
             System.out.print("PW : ");
             pw = scanner.nextLine().trim();
             System.out.print("Name : ");
@@ -294,7 +328,7 @@ public class AdminMainPage {
 
     static void listNotRegisterUser() {
         Scanner scan = new Scanner(System.in);
-        System.out.println("기간을 입력하세요(월): ");
+        System.out.print("기간을 입력하세요(월): ");
         int month = scan.nextInt();
 
         String sql = "SELECT M.u_id, M.name"
@@ -325,7 +359,7 @@ public class AdminMainPage {
 
     static void listItemRegisteredWithInNMonths() {
         Scanner scan = new Scanner(System.in);
-        System.out.println("기간을 입력하세요(월): ");
+        System.out.print("기간을 입력하세요(월): ");
         int month = scan.nextInt();
 
         String sql = "SELECT C.C_id, C.Name, I.Name"

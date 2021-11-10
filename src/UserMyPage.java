@@ -93,15 +93,19 @@ public class UserMyPage {
                     bid = "In Progress";
                 } else if (state.equals("Completed")) {
                     if (rs.getInt(2) == rs.getInt(6)) {
-                        bid = "Success";
+                        bid = "Completed";
                     } else {
-                        bid = "FAIL";
+                        bid = "Fail";
                     }
                 } else {
                     if (rs.getInt(2) == rs.getInt(6)) {
-                        bid = "Rating Required";
+                        if(state.equals("Rating Required")){
+                            bid = "Rating Required";
+                        } else{
+                            bid = "Success";
+                        }
                     } else {
-                        bid = "FAIL";
+                        bid = "Fail";
                     }
                 }
 
@@ -271,6 +275,7 @@ public class UserMyPage {
         String sql = null;
         String pw = null;
         System.out.println("회원정보를 수정하시려면 PW를 다시 입력해주세요");
+        scan = new Scanner(System.in);
         int count = 3;
         while (true) {
             System.out.print("PW : ");
@@ -349,7 +354,7 @@ public class UserMyPage {
         System.out.println("===== 낙찰 완료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 1 AND I.u_id = ?"
                 + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
@@ -358,7 +363,7 @@ public class UserMyPage {
         System.out.println("===== 거래 완료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " WHERE I.ad_id = A.ad_id AND (I.is_end = 3 OR I.is_end = 4) AND I.u_id = ?"
                 + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
@@ -367,7 +372,7 @@ public class UserMyPage {
         System.out.println("===== 기간 만료 상품 목록 =====");
         String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
                 + " FROM ITEM I, ADDRESS A"
-                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 2 AND I.u_id = ?"
                 + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
