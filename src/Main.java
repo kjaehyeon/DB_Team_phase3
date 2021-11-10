@@ -5,10 +5,11 @@ import java.sql.*;
 public class Main {
     static String userid=null;
     static boolean is_admin=false;
+    static boolean log_in = false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    public static final String USER_NAME ="university";
+    public static final String USER_NAME ="DBTeam7";
     public static final String USER_PASSWD ="comp322";
     public static Connection conn = null;
     static PreparedStatement pstmt = null;
@@ -46,8 +47,12 @@ public class Main {
                     break;
                 case 4:
                     System.out.println("프로그램이 종료됩니다.");
-//                  pstmt.close();
-//                  conn.close();
+                    try {
+                        pstmt.close();
+                        conn.close();
+                    } catch (Exception ex) {
+                    }
+
                     System.exit(1);
             }
         }
@@ -98,11 +103,13 @@ public class Main {
             System.err.println("sql error = " + ex.getMessage());
             System.exit(1);
         }
+        log_in = true;
         System.out.println("로그인 성공, 메인페이지로 이동합니다.");
         MainPage();
         return 0;
     }
     static int SignUpPage() {
+        ArrayList<Integer> address_ids = new ArrayList<Integer>();
         Scanner sc = new Scanner(System.in);
         String uid = null;
         String upw = null;
@@ -113,8 +120,27 @@ public class Main {
         String email = null;
         String sql = null;
         System.out.println("회원가입을 위한 정보를 입력해주세요");
-        System.out.print("ID : ");
-        uid = sc.nextLine();
+        boolean loop = true;
+        while(loop){
+            System.out.print("ID : ");
+            uid = sc.nextLine();
+            try {
+                sql = "SELECT COUNT(*) FROM MEMBER WHERE U_id = ?";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, uid);
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()){
+                    if(rs.getInt(1) == 1) {
+                        System.out.println("해당 ID가 이미 존재합니다. 다른 ID를 입력해주세요");
+                    } else if (rs.getInt(1) == 0){
+                        loop = false;
+                    }
+                }
+            } catch (SQLException ex) {
+                System.err.println("sql error = " + ex.getMessage());
+                System.exit(1);
+            }
+        }
         while(true){
             System.out.print("PW : ");
             upw = sc.nextLine();
@@ -134,6 +160,25 @@ public class Main {
         tel = sc.nextLine();
         System.out.print("email 주소 : ");
         email = sc.nextLine();
+        System.out.println("아래 목록 중 주소를 골라서 숫자를 입력해주소요(복수선택, 현재는 대구시만 가능)");
+        System.out.printf("%-5s%-5s\n", "번호", "동(읍,면)");
+        try {
+            sql = "select * from address";
+            pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()){
+                System.out.printf("%-5s%-5s\n", rs.getInt(1), rs.getString(2));
+            }
+
+            System.out.print("입력형태(1,2,3 띄어쓰기 X): ");
+            for (String ex : sc.nextLine().split(",")) {
+                address_ids.add(Integer.valueOf(ex));
+            }
+
+        }catch (SQLException ex){
+            System.err.println("sql error = " + ex.getMessage());
+            System.exit(1);
+        }
         System.out.println("=========================");
         try {
             sql = "INSERT INTO MEMBER (U_id, Pw, Name, Description, Tel, Email) " +
@@ -149,6 +194,20 @@ public class Main {
             if (state == 1) {
                 System.out.println("회원가입이 완료되었습니다.");
             }
+            for (Integer add : address_ids){
+                sql = "INSERT INTO LIVES_IN VALUES(?, ?)";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, uid);
+                pstmt.setInt(2, add);
+                pstmt.addBatch();
+            }
+            int state1[] = pstmt.executeBatch();
+            for (int s : state1){
+                if (s != 1){
+                    System.out.println("주소 정보 입력이 실패하였습니다");
+                }
+            }
+            System.out.println("주소정보 입력을 완료하였습니다.");
         } catch (SQLException ex){
             System.err.println("sql error = " + ex.getMessage());
             System.exit(1);
@@ -192,7 +251,7 @@ public class Main {
         MainPage();
         return 0;
     }
-    static int MainPage(){
+    static void MainPage(){
         int command;
         Scanner scanner = new Scanner(System.in);
         while(true){
@@ -211,13 +270,21 @@ public class Main {
                         break;
                     case 4:
                         is_admin=false;
-                        return 0;
+                        return;
                     case 5:
+                        try {
+                            pstmt.close();
+                            conn.close();
+                        } catch (Exception ex) {
+                        }
                         System.exit(0);
 
                 }
             }else{
                 UserMainPage.selectMenu();
+                if (log_in == false) {
+                    break;
+                }
             }
         }
     }

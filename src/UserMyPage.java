@@ -30,6 +30,8 @@ public class UserMyPage {
                     break;
                 case 5:
                     deleteUser(Main.userid);
+                    Main.log_in = false;
+                    loop = false;
                     break;
                 case 6:
                     loop = false;
@@ -44,7 +46,8 @@ public class UserMyPage {
                 + " I.is_end, I.name, I.current_price, I.u_id, I.it_id"
                 + " FROM BID B, ITEM I"
                 + " WHERE B.it_id = I.it_id"
-                + " AND B.u_id = ?";
+                + " AND B.u_id = ?"
+                + " ORDER BY B.create_date DESC";
         try {
             pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             pstmt.setString(1, Main.userid);
@@ -295,7 +298,7 @@ public class UserMyPage {
         while (true) {
             System.out.print("변경할 PW : ");
             upw = scan.nextLine();
-            System.out.println("PW 확인 : ");
+            System.out.print("PW 확인 : ");
             pw = scan.nextLine();
             if (upw.equals(pw)) {
                 break;
@@ -338,33 +341,37 @@ public class UserMyPage {
     public static void listMyEndOfBidItems() {
         int count = 1;
         System.out.println("===== 낙찰 완료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 1 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listCompletedItems() {
         int count = 1;
         System.out.println("===== 거래 완료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 3 OR is_end = 4 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listMyExpiredItems() {
         int count = 1;
         System.out.println("===== 기간 만료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 2 AND u_id = ?";
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
     public static void listMyInProgressItems() {
         int count = 1;
-        System.out.println("===== 기간 만료 상품 목록 =====");
-        String sql = "SELECT it_id, u_id, expire_date, is_end, name"
-                + " FROM ITEM"
-                + " WHERE is_end = 0 AND u_id = ?";
+        System.out.println("===== 판매 중 상품 목록 =====");
+        String sql = "SELECT I.it_id, I.u_id, I.expire_date, I.is_end, I.name, A.name"
+                + " FROM ITEM I, ADDRESS A"
+                + " WHERE I.ad_id = A.ad_id AND I.is_end = 0 AND I.u_id = ?"
+                + " ORDER BY I.expire_date";
         listMyItemsList(sql);
     }
 
@@ -374,12 +381,13 @@ public class UserMyPage {
             pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             pstmt.setString(1, Main.userid);
             ResultSet rs = pstmt.executeQuery();
-            System.out.println(String.format("%-5s%-10s%-20s%-15s%s",
+            System.out.println(String.format("%-5s%-10s%-20s%-15s%-20s%-10s",
                     "idx",
                     "item_id",
                     "seller_id",
                     "state",
-                    "item_name"));
+                    "item_name",
+                    "address"));
             System.out.println("------------------------------------------------------------------------------");
 
             String state = null;
@@ -399,12 +407,13 @@ public class UserMyPage {
                         state = "Completed";
                         break;
                 }
-                System.out.println(String.format("%-5s%-10s%-20s%-15s%s",
+                System.out.println(String.format("%-5s%-10s%-20s%-15s%-20s%-10s",
                         count++,
                         rs.getInt(1),
                         rs.getString(2),
                         state,
-                        rs.getString(5)
+                        rs.getString(5),
+                        rs.getString(6)
                 ));
             }
             System.out.println();
@@ -439,8 +448,6 @@ public class UserMyPage {
             System.exit(1);
         }
     }
-
-
     public static void showMyItemDetail(int item_id, String is_end) {
         String sql = "SELECT I.it_id, I.name, I.description," +
                 " I.min_bid_unit, I.quick_price, I.start_price," +
@@ -506,6 +513,7 @@ public class UserMyPage {
                             break;
                         case 2:
                             System.out.println("연장할 기간을 입력해주세요(2021-12-31)");
+                            scan = new Scanner(System.in);
                             String extendedDate = scan.nextLine();
                             ExtendDate(item_id, extendedDate);
                             break;
@@ -590,13 +598,9 @@ public class UserMyPage {
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setInt(1, item_id);
             int state = pstmt.executeUpdate();
-            if (state == 1) {
-                System.out.println("성공적으로 상품에 관련된 입찰들을 지웠습니다");
-            } else {
-                System.out.println("상품에 관련된 입찰들을 지우는데 실패하였습니다");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(state+"개의 bid 삭제");
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
         }
 
         sql = "DELETE FROM ITEM WHERE it_id = ?";
@@ -609,25 +613,25 @@ public class UserMyPage {
             } else {
                 System.out.println("상품을 지우는데 실패하였습니다");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
         }
 
     }
     public static void ExtendDate(int item_id, String extendedDate){
-        String sql = "UPDATE ITEM SET expired_date = ? WHERE It_id = ?";
-        SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-        Date dt = null;
-        try {
-            dt = (Date) fm.parse(extendedDate);
-        }catch (Exception e){
-            System.out.println("날짜 변환 실패");
-            e.printStackTrace();
-        }
+        String sql = "UPDATE ITEM SET expire_date = ? WHERE It_id = ?";
+        //SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+        //Date dt = null;
+//        try {
+//            dt = (Date) fm.parse(extendedDate);
+//        }catch (Exception e){
+//            System.out.println("날짜 변환 실패");
+//            e.printStackTrace();
+//        }
 
         try {
             pstmt = Main.conn.prepareStatement(sql);
-            pstmt.setDate(1, dt);
+            pstmt.setDate(1, Date.valueOf(extendedDate));
             pstmt.setInt(2, item_id);
             int state = pstmt.executeUpdate();
             if (state == 1) {
@@ -666,15 +670,31 @@ public class UserMyPage {
             String query = "delete from member where u_id=?";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
-            System.out.println(pstmt.executeUpdate());
+            pstmt.executeUpdate();
+            //System.out.println();
             // 삭제한 회원이 입찰한 item의 current_price 변경해주기
-            query = "UPDATE ITEM SET Current_price = (" +
-                    "    select MAX(i.current_priceprice)" +
-                    "    from item i" +
-                    "    where u_id = ? AND Is_end = 0)";
+            query = "select i.it_id, MAX(b.price)" +
+                    " from bid b, item i" +
+                    " where b.it_id = i.it_id AND i.Is_end = 0" +
+                    "                    AND b.u_id = ?" +
+                    " GROUP BY i.it_id";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
-            System.out.println(pstmt.executeUpdate());
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                String sql = "UPDATE ITEM SET Current_price = ? WHERE it_id = ?";
+                try {
+                    pstmt.setInt(1, rs.getInt(1));
+                    pstmt.setString(2, rs.getString(2));
+                    pstmt.executeUpdate();
+                    //System.out.println();
+                } catch (SQLException ex){
+                    System.out.println(ex.getMessage());
+                    System.out.println("회원 삭제 실패");
+                }
+            }
+            pstmt.executeUpdate();
+            //System.out.println();
             System.out.println("회원 삭제 완료");
         }catch (SQLException sqlException){
             System.out.println(sqlException.getMessage());
