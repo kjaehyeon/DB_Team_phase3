@@ -328,21 +328,19 @@ public class AdminMainPage {
         System.out.println("기간을 입력하세요(월): ");
         int month = scan.nextInt();
 
-        String sql = "SELECT C.C_id, C.Name, COUNT(*) as Num_of_item"
+        String sql = "SELECT C.C_id, C.Name, I.Name"
                 + " FROM (SELECT * FROM ITEM"
                 + " WHERE Create_date > SYSDATE - ? * (INTERVAL '1' MONTH)) I,"
                 + " CATEGORY C"
-                + " WHERE I.C_id = C.C_id"
-                + " GROUP BY C.c_id, C.Name"
-                + " ORDER BY Num_of_item";
+                + " WHERE I.C_id = C.C_id";
         try {
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setInt(1, month);
             ResultSet rs = pstmt.executeQuery();
-            System.out.printf("%-15s%-20s%s\n", "category_id", "num_of_item", "category_name");
+            System.out.printf("%-15s%-20s%s\n", "category_id", "category_name", "item_name");
             System.out.println("--------------------------------------------------");
             while (rs.next()) {
-                System.out.printf("%-15s%-20s%s\n", rs.getInt(1), rs.getInt(3), rs.getString(2));
+                System.out.printf("%-15s%-20s%s\n", rs.getInt(1), rs.getString(2), rs.getString(3));
             }
             System.out.println();
             pstmt.close();

@@ -29,7 +29,7 @@ public class Main {
             System.exit(1);
         }
 
-        while(true){
+       while(true){
             System.out.println("1)로그인 2)회원가입 3)관리자 로그인 4)프로그램 종료");
             command = scanner.nextInt();
             switch (command){
@@ -272,6 +272,8 @@ public class Main {
                         break;
                     case 4:
                         AdminMainPage.reportUserListN();
+                        break;
+                    case 5:
                         break;
                     case 12:
                         is_admin=false;
