@@ -210,17 +210,13 @@ public class AdminMainPage {
                         return 0;
                     case 2: //신고된 게시물 삭제 후 리포트 삭제
                         try{
-                            query = "delete from item where it_id=?";
-                            pstmt = Main.conn.prepareStatement(query);
-                            pstmt.setInt(1, it_id);
-                            System.out.println(pstmt.executeUpdate());
-
                             query = "delete from report where report_id=?";
                             pstmt = Main.conn.prepareStatement(query);
                             pstmt.setInt(1, report_id);
                             System.out.println(pstmt.executeUpdate());
                             UserMyPage.DeleteItem(it_id);
                             System.out.println("리포트 및 게시물 삭제 완료");
+
                         }catch (Exception Exception){
                             System.out.println(Exception.getMessage());
                             System.out.println("리포트 및 게시물 삭제 실패");

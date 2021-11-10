@@ -446,22 +446,57 @@ public class UserMainPage {
             }
         }
         while (true) {
-            System.out.print("Address Id 1)동인동 2)삼덕동 3)성내1동: ");
-            adressId = scan.nextInt();
-            if (adressId >= 1 && adressId <= 3) {
-                break;
-            } else {
-                System.out.println("부적절한 값입니다");
+            try{
+                String sql = "select ad_id,name from address where ad_id in (";
+                for (int location : Main.locations) {
+                    sql += location + ",";
+                }
+                sql = sql.replaceFirst(".$", ")");
+                pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                ResultSet rs = pstmt.executeQuery(sql);
+                System.out.print("Address Id ");
+                int index = 1;
+                while (rs.next()){
+                    System.out.print(index++ + ")"+rs.getString(2)+" ");
+                }
+                int idx = scan.nextInt();
+                if(idx < index && idx > 0){
+                    rs.first();
+                    for(int i =0; i< idx-1; i++)
+                        rs.next();
+                    adressId = rs.getInt(1);
+                    break;
+                }else {
+                    System.out.println("부적절한 값입니다");
+                    continue;
+                }
+            }catch (SQLException sqlException){
+                System.out.println(sqlException.getMessage());
             }
         }
-
         while (true) {
-            System.out.print("Category Id 1)디지털기기 2)생활가전 3)가구/인테리어: ");
-            categoryId = scan.nextInt();
-            if (categoryId >= 1 && categoryId <= 3) {
-                break;
-            } else {
-                System.out.println("부적절한 값입니다");
+            try{
+                String sql = "select c_id, name from category";
+                pstmt = Main.conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                ResultSet rs = pstmt.executeQuery(sql);
+                System.out.print("Category ID ");
+                int index = 1;
+                while (rs.next()){
+                    System.out.print(index++ +")"+rs.getString(2)+" ");
+                }
+                System.out.println();
+                int idx = scan.nextInt();
+                if(idx < index && idx > 0){
+                    rs.first();
+                    for(int i =0; i< idx-1; i++)
+                        rs.next();
+                    categoryId = rs.getInt(1);
+                    break;
+                } else {
+                    System.out.println("부적절한 값입니다");
+                }
+            }catch (SQLException sqlException){
+                System.out.println(sqlException.getMessage());
             }
         }
         try {
