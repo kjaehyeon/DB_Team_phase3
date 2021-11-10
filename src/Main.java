@@ -7,7 +7,6 @@ public class Main {
     static boolean is_admin=false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
-
     public static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl";
     public static final String USER_NAME ="university";
     public static final String USER_PASSWD ="comp322";
