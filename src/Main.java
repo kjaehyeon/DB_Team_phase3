@@ -256,9 +256,10 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while(true){
             if(is_admin){
-                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)n개의 신고 받은 유저 목록 5)상품 미등록 유저 6)최근에 등록된 아이템 조회\n" +
-                        "7)평가 받은 유저 조회 8)각 지역별 최고 평점 유저 9)지역별 등록 상품 개수 10)평가 받지 않은 유저 목록\n" +
-                        "11)신고 되지 않은 아이템 12)뒤로 가기 13)프로그램 종료");
+                System.out.println("1)신고 목록 확인 2)회원 목록 확인 3)관리자 추가 4)n개의 신고 받은 유저 목록 5)최근 상품등록 하지 않은 유저 \n" +
+                        "6)최근에 등록된 아이템 조회 7)평점을 몇개 이상 받은 유저 8)상품을 몇개 이상 등록한 유저 9)선택한 카테고리의 지역별 상품 개수 \n" +
+                        "10)최근 입찰하지 않은 유저 11)일정금액 이상의 물품 개수 조회 12)뒤로 가기 13)프로그램 종료");
+
                 command = scanner.nextInt();
                 switch (command){
                     case 1:
@@ -274,6 +275,25 @@ public class Main {
                         AdminMainPage.reportUserListN();
                         break;
                     case 5:
+                        AdminMainPage.listNotRegisterUser();
+                        break;
+                    case 6:
+                        AdminMainPage.listItemRegisteredWithInNMonths();
+                        break;
+                    case 7:
+                        AdminMainPage.listUserReceivedMoreThanNRatings();
+                        break;
+                    case 8:
+                        AdminMainPage.listUsersRegisterMoreThanNItems();
+                        break;
+                    case 9:
+                        AdminMainPage.registerd_item_num_list();
+                        break;
+                    case 10:
+                        AdminMainPage.inactivate_user();
+                        break;
+                    case 11:
+                        AdminMainPage.overPriceCategory();
                         break;
                     case 12:
                         is_admin=false;
