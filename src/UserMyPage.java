@@ -593,13 +593,9 @@ public class UserMyPage {
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setInt(1, item_id);
             int state = pstmt.executeUpdate();
-            if (state == 1) {
-                System.out.println("성공적으로 상품에 관련된 입찰들을 지웠습니다");
-            } else {
-                System.out.println("상품에 관련된 입찰들을 지우는데 실패하였습니다");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(state+"개의 bid 삭제");
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
         }
 
         sql = "DELETE FROM ITEM WHERE it_id = ?";
@@ -612,8 +608,8 @@ public class UserMyPage {
             } else {
                 System.out.println("상품을 지우는데 실패하였습니다");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
         }
 
     }
@@ -677,7 +673,6 @@ public class UserMyPage {
                     " where b.it_id = i.it_id AND i.Is_end = 0" +
                     "                    AND b.u_id = ?" +
                     " GROUP BY i.it_id";
-
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
             ResultSet rs = pstmt.executeQuery();
