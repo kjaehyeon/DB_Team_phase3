@@ -13,7 +13,7 @@ public class UserMyPage {
     public static void selectMenu(){
         Boolean loop = true;
         while(loop) {
-            System.out.println("1)입찰목록 조회 2)평점 조회 3)등록한 아이템 조회 4)회원정보 수정 5)회원탈퇴 6)뒤로 가기");
+            System.out.println("1)입찰목록 조회 2)평점 조회 3)등록한 아이템 조회 4)회원정보 수정 5)회원탈퇴 6)내 정보 조회 7)뒤로 가기");
             int menu = scan.nextInt();
             switch (menu){
                 case 1:
@@ -34,6 +34,9 @@ public class UserMyPage {
                     loop = false;
                     break;
                 case 6:
+                    //내정보 + 평가 받은 횟수
+                    break;
+                case 7:
                     loop = false;
                     break;
             }
@@ -221,14 +224,16 @@ public class UserMyPage {
                 );
             }
             System.out.println("------------------------------------------------------------------------------");
-            sql = "SELECT s_id, AVG(Score)" +
-                    " FROM Rating" +
+            sql = "SELECT s_id, AVG(Score), name" +
+                    " FROM Rating, Member" +
                     " WHERE s_id = ?" +
-                    " GROUP BY s_id";
+                    " AND s_id = u_id"+
+                    " GROUP BY s_id, name";
             pstmt = Main.conn.prepareStatement(sql);
             pstmt.setString(1, Main.userid);
             rs = pstmt.executeQuery();
             while(rs.next()){
+                System.out.println("이름 : "+rs.getString(3));
                 System.out.println("평균 평점 : " + rs.getDouble(2));
             }
         } catch(SQLException ex) {
