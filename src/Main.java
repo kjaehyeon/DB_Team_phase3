@@ -5,6 +5,7 @@ import java.sql.*;
 public class Main {
     static String userid=null;
     static boolean is_admin=false;
+    static boolean log_in = false;
     static ArrayList<Integer> locations = new ArrayList<Integer>();
 
 
@@ -103,6 +104,7 @@ public class Main {
             System.err.println("sql error = " + ex.getMessage());
             System.exit(1);
         }
+        log_in = true;
         System.out.println("로그인 성공, 메인페이지로 이동합니다.");
         MainPage();
         return 0;
@@ -250,7 +252,7 @@ public class Main {
         MainPage();
         return 0;
     }
-    static int MainPage(){
+    static void MainPage(){
         int command;
         Scanner scanner = new Scanner(System.in);
         while(true){
@@ -269,7 +271,7 @@ public class Main {
                         break;
                     case 4:
                         is_admin=false;
-                        return 0;
+                        return;
                     case 5:
                         try {
                             pstmt.close();
@@ -281,6 +283,9 @@ public class Main {
                 }
             }else{
                 UserMainPage.selectMenu();
+                if (log_in == false) {
+                    break;
+                }
             }
         }
     }

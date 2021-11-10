@@ -30,6 +30,8 @@ public class UserMyPage {
                     break;
                 case 5:
                     deleteUser(Main.userid);
+                    Main.log_in = false;
+                    loop = false;
                     break;
                 case 6:
                     loop = false;
@@ -295,7 +297,7 @@ public class UserMyPage {
         while (true) {
             System.out.print("변경할 PW : ");
             upw = scan.nextLine();
-            System.out.println("PW 확인 : ");
+            System.out.print("PW 확인 : ");
             pw = scan.nextLine();
             if (upw.equals(pw)) {
                 break;
@@ -361,7 +363,7 @@ public class UserMyPage {
     }
     public static void listMyInProgressItems() {
         int count = 1;
-        System.out.println("===== 기간 만료 상품 목록 =====");
+        System.out.println("===== 판매 중 상품 목록 =====");
         String sql = "SELECT it_id, u_id, expire_date, is_end, name"
                 + " FROM ITEM"
                 + " WHERE is_end = 0 AND u_id = ?";
@@ -506,6 +508,7 @@ public class UserMyPage {
                             break;
                         case 2:
                             System.out.println("연장할 기간을 입력해주세요(2021-12-31)");
+                            scan = new Scanner(System.in);
                             String extendedDate = scan.nextLine();
                             ExtendDate(item_id, extendedDate);
                             break;
@@ -615,19 +618,19 @@ public class UserMyPage {
 
     }
     public static void ExtendDate(int item_id, String extendedDate){
-        String sql = "UPDATE ITEM SET expired_date = ? WHERE It_id = ?";
-        SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-        Date dt = null;
-        try {
-            dt = (Date) fm.parse(extendedDate);
-        }catch (Exception e){
-            System.out.println("날짜 변환 실패");
-            e.printStackTrace();
-        }
+        String sql = "UPDATE ITEM SET expire_date = ? WHERE It_id = ?";
+        //SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+        //Date dt = null;
+//        try {
+//            dt = (Date) fm.parse(extendedDate);
+//        }catch (Exception e){
+//            System.out.println("날짜 변환 실패");
+//            e.printStackTrace();
+//        }
 
         try {
             pstmt = Main.conn.prepareStatement(sql);
-            pstmt.setDate(1, dt);
+            pstmt.setDate(1, Date.valueOf(extendedDate));
             pstmt.setInt(2, item_id);
             int state = pstmt.executeUpdate();
             if (state == 1) {
@@ -666,15 +669,32 @@ public class UserMyPage {
             String query = "delete from member where u_id=?";
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
-            System.out.println(pstmt.executeUpdate());
+            pstmt.executeUpdate();
+            //System.out.println();
             // 삭제한 회원이 입찰한 item의 current_price 변경해주기
-            query = "UPDATE ITEM SET Current_price = (" +
-                    "    select MAX(i.current_priceprice)" +
-                    "    from item i" +
-                    "    where u_id = ? AND Is_end = 0)";
+            query = "select i.it_id, MAX(b.price)" +
+                    " from bid b, item i" +
+                    " where b.it_id = i.it_id AND i.Is_end = 0" +
+                    "                    AND b.u_id = ?" +
+                    " GROUP BY i.it_id";
+
             pstmt = Main.conn.prepareStatement(query);
             pstmt.setString(1, user_id);
-            System.out.println(pstmt.executeUpdate());
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                String sql = "UPDATE ITEM SET Current_price = ? WHERE it_id = ?";
+                try {
+                    pstmt.setInt(1, rs.getInt(1));
+                    pstmt.setString(2, rs.getString(2));
+                    pstmt.executeUpdate();
+                    //System.out.println();
+                } catch (SQLException ex){
+                    System.out.println(ex.getMessage());
+                    System.out.println("회원 삭제 실패");
+                }
+            }
+            pstmt.executeUpdate();
+            //System.out.println();
             System.out.println("회원 삭제 완료");
         }catch (SQLException sqlException){
             System.out.println(sqlException.getMessage());
