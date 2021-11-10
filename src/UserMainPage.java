@@ -13,7 +13,7 @@ public class UserMainPage {
         Scanner scan = new Scanner(System.in);
         boolean loop = true;
         while (loop) {
-            System.out.println("1)상품목록 보기 2)상품검색 3)마이페이지 4)상품 등록하기 5)시스템 종료");
+            System.out.println("1)상품목록 보기 2)상품검색 3)마이페이지 4)상품 등록하기 5)신고되지 않은 상품만 보기 6)시스템 종료");
             int menu = scan.nextInt();
             switch (menu) {
                 case 1:
@@ -32,6 +32,9 @@ public class UserMainPage {
                     registerItem();
                     break;
                 case 5:
+                    not_reported_item();
+                    break;
+                case 6:
                     try {
                         Main.conn.close();
                         scan.close();
@@ -549,5 +552,44 @@ public class UserMainPage {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    static void not_reported_item(){
+        ResultSet rs;
+        String query;
+        try{
+            query = "select  i.it_id,\n" +
+                    "        i.name,\n" +
+                    "        i.current_price\n" +
+                    "from   item i\n" +
+                    "where i.ad_id in (";
+            for (int location : Main.locations) {
+                query += location + ",";
+            }
+            query = query.replaceFirst(".$", ")");
+            query = query + "minus\n" +
+                    "select  i.it_id,\n" +
+                    "        i.name,\n" +
+                    "        i.current_price\n" +
+                    "from    item i\n" +
+                    "where   i.it_id IN (select  r.it_id\n" +
+                    "                    from    report r)\n" +
+                    "        and i.ad_id in (";
+            for (int location : Main.locations) {
+                query += location + ",";
+            }
+            query = query.replaceFirst(".$", ")");
+            pstmt = Main.conn.prepareStatement(query);
+            rs = pstmt.executeQuery();
+            System.out.println("신고가 접수되지 않은 상품입니다.\n아이템 상세 정보는 검색 기능을 이용해 주세요");
+            System.out.println("ITEM NAME                      Current_Price");
+            System.out.println("--------------------------------------------");
+            while(rs.next()){
+                System.out.printf("%-30s %d", rs.getString(2), rs.getInt(3));
+            }
+            System.out.println();
+        }catch (SQLException sqlException){
+            System.out.println(sqlException.getMessage());
+        }
+
     }
 }
